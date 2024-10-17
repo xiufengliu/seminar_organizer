@@ -103,8 +103,8 @@ def show():
         st.subheader("Request a Seminar")
         with st.form("request_seminar_form"):
             date = st.date_input("Seminar Date")
-            start_time = time_picker("Start Time")
-            end_time = time_picker("End Time", default_time=time(10, 0))
+            start_time = time_picker("Start Time", default_time=time(12, 0))
+            end_time = time_picker("End Time", default_time=time(13, 0))
             room = st.text_input("Preferred Meeting Room")
             speaker_name = st.text_input("Speaker Name")
             speaker_email = st.text_input("Speaker Email")

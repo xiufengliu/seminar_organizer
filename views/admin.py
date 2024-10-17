@@ -140,8 +140,11 @@ def show():
                                 st.experimental_rerun()
                         with col2:
                             if st.button("Reject", key=f"reject_{request[0]}"):
-                                db.update_seminar_request(request[0], *request[1:10], "rejected")
-                                st.success("Seminar request rejected.")
+                                success, message = db.update_seminar_request(request[0], *request[1:10], "rejected")
+                                if success:
+                                    st.success(message)
+                                else:
+                                    st.error("Failed to reject the seminar request.")
                                 st.experimental_rerun()
                         with col3:
                             if st.button("Edit", key=f"edit_{request[0]}"):

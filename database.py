@@ -131,13 +131,17 @@ class SeminarDB:
 
     def update_seminar_request(self, request_id, date, start_time, end_time, speaker_name, speaker_email, speaker_bio, topic, abstract, room, status):
         self.connect()
-        self.cursor.execute('''
-            UPDATE seminar_requests
-            SET date = ?, start_time = ?, end_time = ?, speaker_name = ?, speaker_email = ?, speaker_bio = ?, topic = ?, abstract = ?, room = ?, status = ?
-            WHERE id = ?
-        ''', (date, start_time, end_time, speaker_name, speaker_email, speaker_bio, topic, abstract, room, status, request_id))
-        self.conn.commit()
-        
+        if status == "rejected":
+            self.delete_seminar_request(request_id)
+            return True, "Seminar request rejected and removed from the list."
+        else:
+            self.cursor.execute('''
+                UPDATE seminar_requests
+                SET date = ?, start_time = ?, end_time = ?, speaker_name = ?, speaker_email = ?, speaker_bio = ?, topic = ?, abstract = ?, room = ?, status = ?
+                WHERE id = ?
+            ''', (date, start_time, end_time, speaker_name, speaker_email, speaker_bio, topic, abstract, room, status, request_id))
+            self.conn.commit()
+            return True, "Seminar request updated successfully."
         # Send email notification
         self.send_email_notification(request_id, status)
 
@@ -193,6 +197,11 @@ class SeminarDB:
     def delete_seminar(self, seminar_id):
         self.connect()
         self.cursor.execute('DELETE FROM seminars WHERE id = ?', (seminar_id,))
+        self.conn.commit()
+
+    def delete_seminar_request(self, request_id):
+        self.connect()
+        self.cursor.execute('DELETE FROM seminar_requests WHERE id = ?', (request_id,))
         self.conn.commit()
 
     def verify_admin(self, username, password):
