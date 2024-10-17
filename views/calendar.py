@@ -34,7 +34,7 @@ def show():
                     values=['Date', 'Time', 'Topic', 'Speaker', 'Room'],
                     fill_color='#4CAF50',
                     align='left',
-                    font=dict(color='white', size=12)
+                    font=dict(color='white', size=14)
                 ),
                 cells=dict(
                     values=[
@@ -45,13 +45,13 @@ def show():
                         df.room
                     ],
                     align='left',
-                    font=dict(color='darkslate gray', size=11)
+                    font=dict(color='darkslate gray', size=13)
                 )
             )])
 
             fig.update_layout(
                 title='Upcoming Seminars',
-                height=200,
+                height=240,
                 margin=dict(l=0, r=0, t=30, b=0),
             )
 
