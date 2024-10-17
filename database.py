@@ -115,13 +115,17 @@ class SeminarDB:
         seminars = self.cursor.fetchall()
         return seminars
     
-    def create_seminar_request(self, date, start_time, end_time, speaker_name, speaker_email, speaker_bio, topic, abstract, room, submitter_name, submitter_email):
+    def create_seminar_request(self, date, start_time, end_time, speaker_name, speaker_email, speaker_bio, topic, abstract, room):
+        if self.check_existing_request(date, start_time, end_time, speaker_name, topic, room):
+            return False, "A similar seminar request already exists."
+        
         self.connect()
         self.cursor.execute('''
-            INSERT INTO seminar_requests (date, start_time, end_time, speaker_name, speaker_email, speaker_bio, topic, abstract, room, submitter_name, submitter_email)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        ''', (date, start_time, end_time, speaker_name, speaker_email, speaker_bio, topic, abstract, room, submitter_name, submitter_email))
+            INSERT INTO seminar_requests (date, start_time, end_time, speaker_name, speaker_email, speaker_bio, topic, abstract, room)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ''', (date, start_time, end_time, speaker_name, speaker_email, speaker_bio, topic, abstract, room))
         self.conn.commit()
+        return True, "Seminar request submitted successfully."
 
 
     def read_seminar_requests(self):
@@ -158,6 +162,14 @@ class SeminarDB:
             return True, "Seminar request approved and added to schedule."
         return False, "Seminar request not found."
 
+    def check_existing_request(self, date, start_time, end_time, speaker_name, topic, room):
+        self.connect()
+        self.cursor.execute('''
+            SELECT COUNT(*) FROM seminar_requests
+            WHERE date = ? AND start_time = ? AND end_time = ? AND speaker_name = ? AND topic = ? AND room = ?
+        ''', (date, start_time, end_time, speaker_name, topic, room))
+        count = self.cursor.fetchone()[0]
+        return count > 0
 
     def create_seminar(self, date, start_time, end_time, speaker_name, speaker_email, speaker_bio, topic, abstract, room):
         if self.check_time_conflict(date, start_time, end_time, room):

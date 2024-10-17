@@ -99,12 +99,14 @@ def show():
                 with col2:
                     with st.expander("Abstract", expanded=True):
                         st.markdown(f"<div style='background-color: #fff6e6; padding: 10px; border-radius: 5px;'>{seminar['abstract']}</div>", unsafe_allow_html=True)
+# In the "Request Seminar" tab of calendar.py
+
     with tab2:
         st.subheader("Request a Seminar")
         with st.form("request_seminar_form"):
             date = st.date_input("Seminar Date")
-            start_time = time_picker("Start Time", default_time=time(12, 0))
-            end_time = time_picker("End Time", default_time=time(13, 0))
+            start_time = time_picker("Start Time")
+            end_time = time_picker("End Time", default_time=time(10, 0))
             room = st.text_input("Preferred Meeting Room")
             speaker_name = st.text_input("Speaker Name")
             speaker_email = st.text_input("Speaker Email")
@@ -119,9 +121,13 @@ def show():
             submit_button = st.form_submit_button("Submit Request")
 
         if submit_button:
-            db.create_seminar_request(str(date), start_time.strftime("%H:%M:%S"), end_time.strftime("%H:%M:%S"), 
-                                    speaker_name, speaker_email, speaker_bio, topic, abstract, room,
-                                    submitter_name, submitter_email)
-            st.success("Seminar request submitted successfully!")
+            success, message = db.create_seminar_request(
+                str(date), start_time.strftime("%H:%M:%S"), end_time.strftime("%H:%M:%S"),
+                speaker_name, speaker_email, speaker_bio, topic, abstract, room
+            )
+            if success:
+                st.success(message)
+            else:
+                st.warning(message)
 
     db.close()
