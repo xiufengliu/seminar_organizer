@@ -117,10 +117,24 @@ class SeminarDB:
     
     def create_seminar_request(self, date, start_time, end_time, speaker_name, speaker_email, speaker_bio, topic, abstract, room, submitter_name, submitter_email):
         self.connect()
+        
+        # Check if a similar request already exists
+        self.cursor.execute('''
+            SELECT COUNT(*) FROM seminar_requests
+            WHERE date = ? AND start_time = ? AND end_time = ? AND speaker_name = ? AND topic = ? AND room = ?
+        ''', (date, start_time, end_time, speaker_name, topic, room))
+        
+        count = self.cursor.fetchone()[0]
+        
+        if count > 0:
+            return False, "A similar seminar request already exists."
+        
+        # If no similar request exists, insert the new request
         self.cursor.execute('''
             INSERT INTO seminar_requests (date, start_time, end_time, speaker_name, speaker_email, speaker_bio, topic, abstract, room, submitter_name, submitter_email)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ''', (date, start_time, end_time, speaker_name, speaker_email, speaker_bio, topic, abstract, room, submitter_name, submitter_email))
+        
         self.conn.commit()
         return True, "Seminar request submitted successfully."
 
