@@ -101,6 +101,8 @@ def show():
                         st.markdown(f"<div style='background-color: #fff6e6; padding: 10px; border-radius: 5px;'>{seminar['abstract']}</div>", unsafe_allow_html=True)
 # In the "Request Seminar" tab of calendar.py
 
+# In the "Request Seminar" tab of calendar.py
+
     with tab2:
         st.subheader("Request a Seminar")
         with st.form("request_seminar_form"):
@@ -123,7 +125,8 @@ def show():
         if submit_button:
             success, message = db.create_seminar_request(
                 str(date), start_time.strftime("%H:%M:%S"), end_time.strftime("%H:%M:%S"),
-                speaker_name, speaker_email, speaker_bio, topic, abstract, room
+                speaker_name, speaker_email, speaker_bio, topic, abstract, room,
+                submitter_name, submitter_email
             )
             if success:
                 st.success(message)
