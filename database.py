@@ -115,7 +115,7 @@ class SeminarDB:
         seminars = self.cursor.fetchall()
         return seminars
     
-    def create_seminar_request(self, date, start_time, end_time, speaker_name, speaker_email, speaker_bio, topic, abstract, room):
+    def create_seminar_request(self, date, start_time, end_time, speaker_name, speaker_email, speaker_bio, topic, abstract, room, submitter_name, submitter_email):
         self.connect()
         # Check if a similar request already exists
         self.cursor.execute('''
@@ -129,9 +129,9 @@ class SeminarDB:
         
         # If no similar request exists, insert the new request
         self.cursor.execute('''
-            INSERT INTO seminar_requests (date, start_time, end_time, speaker_name, speaker_email, speaker_bio, topic, abstract, room)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-        ''', (date, start_time, end_time, speaker_name, speaker_email, speaker_bio, topic, abstract, room))
+            INSERT INTO seminar_requests (date, start_time, end_time, speaker_name, speaker_email, speaker_bio, topic, abstract, room, submitter_name, submitter_email)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ''', (date, start_time, end_time, speaker_name, speaker_email, speaker_bio, topic, abstract, room, submitter_name, submitter_email))
         self.conn.commit()
         return True, "Seminar request submitted successfully."
 
