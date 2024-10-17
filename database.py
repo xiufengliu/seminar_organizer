@@ -146,12 +146,13 @@ class SeminarDB:
         self.cursor.execute('SELECT * FROM seminar_requests WHERE id = ?', (request_id,))
         request = self.cursor.fetchone()
         if request:
-            self.create_seminar(*request[1:10])  # Exclude id, submitter info, and status
-            self.cursor.execute('UPDATE seminar_requests SET status = ? WHERE id = ?', ('approved', request_id))
+            # Create a new seminar
+            self.create_seminar(*request[1:10])  # Exclude id and status
+            # Delete the request from seminar_requests table
+            self.cursor.execute('DELETE FROM seminar_requests WHERE id = ?', (request_id,))
             self.conn.commit()
-            
-            # Send email notification
-            self.send_email_notification(request_id, 'approved')
+            return True, "Seminar request approved and added to schedule."
+        return False, "Seminar request not found."
 
 
     def create_seminar(self, date, start_time, end_time, speaker_name, speaker_email, speaker_bio, topic, abstract, room):

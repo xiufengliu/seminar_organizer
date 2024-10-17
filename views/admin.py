@@ -132,8 +132,11 @@ def show():
                         col1, col2, col3 = st.columns(3)
                         with col1:
                             if st.button("Approve", key=f"approve_{request[0]}"):
-                                db.approve_seminar_request(request[0])
-                                st.success("Seminar request approved and added to schedule.")
+                                success, message = db.approve_seminar_request(request[0])
+                                if success:
+                                    st.success(message)
+                                else:
+                                    st.error(message)
                                 st.experimental_rerun()
                         with col2:
                             if st.button("Reject", key=f"reject_{request[0]}"):
