@@ -25,7 +25,7 @@ def show():
             else:
                 st.error("Invalid username or password")
     else:
-        tab1, tab2 = st.tabs(["New Seminar", "Pending Seminar Requests"])
+        tab1, tab2 = st.tabs(["Admin Seminar", "Pending Seminar Requests"])
 
         with tab1:
             st.header("Manage Seminars")
