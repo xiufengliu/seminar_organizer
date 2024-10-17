@@ -87,6 +87,7 @@ def show():
                         email_recipients = st.text_area("Enter email recipients (one per line)")
                         if st.button("Invite"):
                             emails = [email.strip() for email in email_recipients.split('\n') if email.strip()]
+                            emails.append(speaker_email)
                             if emails:
                                 success, message = db.send_calendar_invitation(seminar[0], emails)
                                 if success:
