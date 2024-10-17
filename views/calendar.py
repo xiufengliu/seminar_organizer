@@ -103,19 +103,25 @@ def show():
         st.subheader("Request a Seminar")
         with st.form("request_seminar_form"):
             date = st.date_input("Seminar Date")
-            start_time = time_picker("Start Time", default_time=time(12, 0))
-            end_time = time_picker("End Time", default_time=time(13, 0))
+            start_time = time_picker("Start Time")
+            end_time = time_picker("End Time", default_time=time(10, 0))
             room = st.text_input("Preferred Meeting Room")
             speaker_name = st.text_input("Speaker Name")
             speaker_email = st.text_input("Speaker Email")
             speaker_bio = st.text_area("Speaker Bio")
             topic = st.text_input("Topic")
             abstract = st.text_area("Abstract")
+            
+            st.markdown("--------------")
+            submitter_name = st.text_input("Your Name")
+            submitter_email = st.text_input("Your Email")
+            
             submit_button = st.form_submit_button("Submit Request")
 
         if submit_button:
             db.create_seminar_request(str(date), start_time.strftime("%H:%M:%S"), end_time.strftime("%H:%M:%S"), 
-                                      speaker_name, speaker_email, speaker_bio, topic, abstract, room)
+                                    speaker_name, speaker_email, speaker_bio, topic, abstract, room,
+                                    submitter_name, submitter_email)
             st.success("Seminar request submitted successfully!")
 
     db.close()

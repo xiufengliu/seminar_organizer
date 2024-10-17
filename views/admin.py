@@ -52,13 +52,13 @@ def show():
                     else:
                         st.warning(message)
 
-            elif seminar_action == "Edit Seminar":
+            elif seminar_action == "Update Seminar":
                 seminars = db.read_seminars()
                 if not seminars:
-                    st.warning("No seminars available to edit.")
+                    st.warning("No seminars available to update.")
                 else:
                     seminar_options = [f"{s[1]} - {s[7]}" for s in seminars]  # date - topic
-                    selected_seminar = st.selectbox("Select seminar to edit", seminar_options)
+                    selected_seminar = st.selectbox("Select seminar to update", seminar_options)
                     if selected_seminar:
                         seminar = next(s for s in seminars if f"{s[1]} - {s[7]}" == selected_seminar)
                         with st.form("edit_seminar_form"):
@@ -74,12 +74,27 @@ def show():
                             submit_button = st.form_submit_button("Update Seminar")
 
                         if submit_button:
-                            success, message = db.update_seminar(seminar[0], str(date), start_time.strftime("%H:%M:%S"), end_time.strftime("%H:%M:%S"), 
+                            success, message = db.update_seminar(seminar[0], str(date), start_time.strftime("%H:%M:%S"), end_time.strftime("%H:%M:%S"),
                                                                 speaker_name, speaker_email, speaker_bio, topic, abstract, room)
                             if success:
                                 st.success(message)
                             else:
                                 st.warning(message)
+
+                        # Add email invitation section
+                        st.markdown("---")
+                        st.subheader("Send Calendar Invitations")
+                        email_recipients = st.text_area("Enter email recipients (one per line)")
+                        if st.button("Invite"):
+                            emails = [email.strip() for email in email_recipients.split('\n') if email.strip()]
+                            if emails:
+                                success, message = db.send_calendar_invitation(seminar[0], emails)
+                                if success:
+                                    st.success(message)
+                                else:
+                                    st.error(message)
+                            else:
+                                st.warning("Please enter at least one email address.")
 
 
             elif seminar_action == "Delete Seminar":
@@ -111,6 +126,7 @@ def show():
                         st.write(f"Bio: {request[6]}")
                         st.write(f"Topic: {request[7]}")
                         st.write(f"Abstract: {request[8]}")
+                        st.write(f"Submitter: {request[10]} ({request[11]})")
                         
                         col1, col2, col3 = st.columns(3)
                         with col1:
@@ -120,7 +136,7 @@ def show():
                                 st.experimental_rerun()
                         with col2:
                             if st.button("Reject", key=f"reject_{request[0]}"):
-                                db.update_seminar_request(request[0], *request[1:9], "rejected")
+                                db.update_seminar_request(request[0], *request[1:10], "rejected")
                                 st.success("Seminar request rejected.")
                                 st.experimental_rerun()
                         with col3:
