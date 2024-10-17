@@ -96,7 +96,7 @@ class SeminarDB:
             SELECT * FROM seminars 
             WHERE date >= ? 
             ORDER BY date ASC, start_time ASC
-        ''', (now,))
+        ''', (now.strftime("%Y-%m-%d"),))
         seminars = self.cursor.fetchall()
         return seminars
     

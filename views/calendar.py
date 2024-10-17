@@ -17,7 +17,7 @@ def show():
     tab1, tab2 = st.tabs(["Seminar Schedule", "Request Seminar"])
 
     with tab1:
-        seminars = db.read_seminars()
+        seminars = db.fetch_future_seminars()
         
         if not seminars:
             st.warning("No upcoming seminars found.")
