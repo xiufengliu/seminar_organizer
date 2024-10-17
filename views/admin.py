@@ -117,8 +117,17 @@ def show():
             if not requests:
                 st.warning("No pending seminar requests.")
             else:
+                # Group similar requests
+                grouped_requests = {}
                 for request in requests:
-                    with st.expander(f"{request[1]} - {request[7]}"):
+                    key = (request[1], request[2], request[3], request[4], request[7], request[9])  # date, start_time, end_time, speaker_name, topic, room
+                    if key not in grouped_requests:
+                        grouped_requests[key] = []
+                    grouped_requests[key].append(request)
+
+                for key, similar_requests in grouped_requests.items():
+                    request = similar_requests[0]  # Use the first request in the group for display
+                    with st.expander(f"{request[1]} - {request[7]} ({len(similar_requests)} similar requests)"):
                         st.write(f"Date: {request[1]}")
                         st.write(f"Time: {request[2]} - {request[3]}")
                         st.write(f"Room: {request[9]}")
@@ -127,29 +136,26 @@ def show():
                         st.write(f"Bio: {request[6]}")
                         st.write(f"Topic: {request[7]}")
                         st.write(f"Abstract: {request[8]}")
-                        st.write(f"Submitter: {request[10]} ({request[11]})")
-                        
+
                         col1, col2, col3 = st.columns(3)
                         with col1:
                             if st.button("Approve", key=f"approve_{request[0]}"):
-                                success, message = db.approve_seminar_request(request[0])
-                                if success:
-                                    st.success(message)
-                                else:
-                                    st.error(message)
+                                for r in similar_requests:
+                                    db.approve_seminar_request(r[0])
+                                st.success(f"Approved {len(similar_requests)} similar seminar requests and added to schedule.")
                                 st.experimental_rerun()
                         with col2:
                             if st.button("Reject", key=f"reject_{request[0]}"):
-                                success, message = db.update_seminar_request(request[0], *request[1:10], "rejected")
-                                if success:
-                                    st.success(message)
-                                else:
-                                    st.error("Failed to reject the seminar request.")
+                                for r in similar_requests:
+                                    db.update_seminar_request(r[0], *r[1:9], "rejected")
+                                st.success(f"Rejected {len(similar_requests)} similar seminar requests.")
                                 st.experimental_rerun()
                         with col3:
                             if st.button("Edit", key=f"edit_{request[0]}"):
                                 st.session_state.editing_request = request[0]
                                 st.experimental_rerun()
+
+            # ... (rest of the code for editing requests remains the same)
 
                 if 'editing_request' in st.session_state:
                     request = next(r for r in requests if r[0] == st.session_state.editing_request)
