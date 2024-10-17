@@ -147,7 +147,7 @@ def show():
                         with col2:
                             if st.button("Reject", key=f"reject_{request[0]}"):
                                 for r in similar_requests:
-                                    db.update_seminar_request(r[0], *r[1:9], "rejected")
+                                    db.update_seminar_request(r[0], *r[1:10], "rejected")
                                 st.success(f"Rejected {len(similar_requests)} similar seminar requests.")
                                 st.experimental_rerun()
                         with col3:
