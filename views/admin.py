@@ -29,7 +29,7 @@ def show():
 
         with tab1:
             st.header("Manage Seminars")
-            seminar_action = st.selectbox("Choose an action", ["Add Seminar", "Edit Seminar", "Delete Seminar"])
+            seminar_action = st.selectbox("Choose an action", ["Add Seminar", "Update Seminar", "Delete Seminar"])
             
             if seminar_action == "Add Seminar":
                 with st.form("add_seminar_form"):
