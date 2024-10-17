@@ -146,29 +146,34 @@ def show():
                                 st.experimental_rerun()
 
                 if 'editing_request' in st.session_state:
-                        request = next(r for r in requests if r[0] == st.session_state.editing_request)
-                        st.subheader(f"Editing request: {request[1]} - {request[7]}")
-                        with st.form("edit_request_form"):
-                            date = st.date_input("Seminar Date", value=datetime.strptime(request[1], "%Y-%m-%d").date())
-                            start_time = time_picker("Start Time", default_time=datetime.strptime(request[2], "%H:%M:%S").time())
-                            end_time = time_picker("End Time", default_time=datetime.strptime(request[3], "%H:%M:%S").time())
-                            room = st.text_input("Meeting Room", value=request[9])
-                            speaker_name = st.text_input("Speaker Name", value=request[4])
-                            speaker_email = st.text_input("Speaker Email", value=request[5])
-                            speaker_bio = st.text_area("Speaker Bio", value=request[6])
-                            topic = st.text_input("Topic", value=request[7])
-                            abstract = st.text_area("Abstract", value=request[8])
-                            status = st.selectbox("Status", ["pending", "approved", "rejected"], index=["pending", "approved", "rejected"].index(request[10]))
-                            submit_button = st.form_submit_button("Update Request")
+                    request = next(r for r in requests if r[0] == st.session_state.editing_request)
+                    st.subheader(f"Editing request: {request[1]} - {request[7]}")
+                    with st.form("edit_request_form"):
+                        date = st.date_input("Seminar Date", value=datetime.strptime(request[1], "%Y-%m-%d").date())
+                        start_time = time_picker("Start Time", default_time=datetime.strptime(request[2], "%H:%M:%S").time())
+                        end_time = time_picker("End Time", default_time=datetime.strptime(request[3], "%H:%M:%S").time())
+                        room = st.text_input("Meeting Room", value=request[9])
+                        speaker_name = st.text_input("Speaker Name", value=request[4])
+                        speaker_email = st.text_input("Speaker Email", value=request[5])
+                        speaker_bio = st.text_area("Speaker Bio", value=request[6])
+                        topic = st.text_input("Topic", value=request[7])
+                        abstract = st.text_area("Abstract", value=request[8])
+                        
+                        # Handle the case where the status might not be in the list
+                        status_options = ["pending", "approved", "rejected"]
+                        current_status = request[10] if request[10] in status_options else "pending"
+                        status = st.selectbox("Status", status_options, index=status_options.index(current_status))
+                        
+                        submit_button = st.form_submit_button("Update Request")
 
-                        if submit_button:
-                            db.update_seminar_request(
-                                request[0], str(date), start_time.strftime("%H:%M:%S"), end_time.strftime("%H:%M:%S"),
-                                speaker_name, speaker_email, speaker_bio, topic, abstract, room, status
-                            )
-                            st.success("Seminar request updated successfully!")
-                            del st.session_state.editing_request
-                            st.experimental_rerun()
+                    if submit_button:
+                        db.update_seminar_request(
+                            request[0], str(date), start_time.strftime("%H:%M:%S"), end_time.strftime("%H:%M:%S"),
+                            speaker_name, speaker_email, speaker_bio, topic, abstract, room, status
+                        )
+                        st.success("Seminar request updated successfully!")
+                        del st.session_state.editing_request
+                        st.experimental_rerun()
 
         if st.button("Logout"):
             st.session_state.admin_logged_in = False
