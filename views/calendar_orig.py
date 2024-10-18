@@ -1,16 +1,8 @@
 import streamlit as st
 import pandas as pd
-from st_aggrid import AgGrid, GridOptionsBuilder
+import plotly.graph_objects as go
 from database import SeminarDB
 from datetime import datetime, time
-import logging
-
-# Set up logging
-logging.basicConfig(level=logging.INFO)
-
-# Initialize session state for selected seminar
-if 'selected_seminar' not in st.session_state:
-    st.session_state.selected_seminar = None
 
 def time_picker(label, default_time=time(9, 0)):
     col1, col2 = st.columns(2)
@@ -37,38 +29,47 @@ def show():
             df['datetime'] = pd.to_datetime(df['date'].astype(str) + ' ' + df['start_time'].astype(str))
             df = df.sort_values('datetime')
 
-            # Build AgGrid table
-            gb = GridOptionsBuilder.from_dataframe(df[['date', 'start_time', 'end_time', 'topic', 'speaker_name', 'room']])
-            gb.configure_selection('single', use_checkbox=True, groupSelectsChildren=True, groupSelectsFiltered=True)
-            gb.configure_grid_options(domLayout='normal')
-            grid_options = gb.build()
+            fig = go.Figure(data=[go.Table(
+                columnwidth=[1, 1, 4, 1, 1],  # Adjusting column widths: Date, Time, Room smaller; Topic wider
+                header=dict(
+                    values=['Date', 'Time', 'Topic', 'Speaker', 'Room'],
+                    fill_color='#4CAF50',
+                    align='left',
+                    font=dict(color='white', size=14)
+                ),
+                cells=dict(
+                    values=[
+                        df.date.dt.strftime('%Y-%m-%d'),
+                        df.start_time.apply(lambda t: t.strftime('%H:%M')) + ' - ' + df.end_time.apply(lambda t: t.strftime('%H:%M')),
+                        df.topic,
+                        df.speaker_name,
+                        df.room
+                    ],
+                    align='left',
+                    font=dict(color='darkslate gray', size=13),
+                    fill_color='white',
+                    height=30  # Adjust row height for better spacing
+                )
+            )])
 
-            grid_response = AgGrid(
-                df[['date', 'start_time', 'end_time', 'topic', 'speaker_name', 'room']],
-                gridOptions=grid_options,
-                height=300,
-                data_return_mode='AS_INPUT', 
-                update_mode='SELECTION_CHANGED',
-                fit_columns_on_grid_load=True,
-                allow_unsafe_jscode=True
+            fig.update_layout(
+                title='Upcoming Seminars',
+                height=300,  # Set a fixed height for the table
+                margin=dict(l=0, r=0, t=30, b=0),
+                paper_bgcolor='white'
             )
-            selected_rows = grid_response['selected_rows']
+
+            st.plotly_chart(fig, use_container_width=True)
 
 
-             # Check if selected_rows is not empty
-            if selected_rows and not selected_rows.empty and 'id' in selected_rows.columns:
-                # Retrieve the 'id' of the selected seminar
-                selected_seminar_id = selected_rows.iloc[0]['id']
 
-                # Use the selected seminar ID to get full seminar details from the original DataFrame
-                selected_seminar = df[df['id'] == selected_seminar_id].iloc[0].to_dict()
-                st.session_state.selected_seminar = selected_seminar
-            else:
-                st.session_state.selected_seminar = None
-
-            # Display seminar details if a seminar is selected
-            if st.session_state.selected_seminar is not None:
-                seminar = st.session_state.selected_seminar
+            st.markdown('-----------------')
+            st.subheader("Seminar Details")
+            selected_seminar = st.selectbox("Select a seminar for more information", df['topic'])
+            if selected_seminar:
+                seminar = df[df['topic'] == selected_seminar].iloc[0]
+                
+                # Create a styled container for seminar details
                 with st.container():
                     st.markdown(f"""
                             <style>
@@ -77,7 +78,7 @@ def show():
                                     border-radius: 10px;
                                     padding: 20px;
                                     margin-bottom: 20px;
-                                    border: 1px solid #ccc;
+                                    border: 1px solid #ccc; /* Added border to frame the section */
                                 }}
                                 .seminar-details h4 {{
                                     color: #1f77b4;
@@ -99,19 +100,20 @@ def show():
                                 .speaker-abstract-container {{
                                     display: flex;
                                     justify-content: space-between;
-                                    gap: 10px;
+                                    gap: 10px; /* Reduced the gap between the Speaker Bio and Abstract sections */
                                 }}
                                 .speaker-abstract-container div {{
-                                    width: 48%;
+                                    width: 48%; /* Adjusting width of each column */
                                 }}
                             </style>
+
                             <div class="seminar-details">
-                                <h4>{seminar.get('topic', 'N/A')}</h4>
+                                <h4>{seminar['topic']}</h4>
                                 <div class="seminar-info">
-                                    <div><span class="label">Time:</span> {seminar.get('date', 'N/A')} {seminar.get('start_time', 'N/A')} - {seminar.get('end_time', 'N/A')}</div>
-                                    <div><span class="label">Room:</span> {seminar.get('room', 'N/A')}</div>
-                                    <div><span class="label">Speaker:</span> {seminar.get('speaker_name', 'N/A')}</div>
-                                    <div><span class="label">Email:</span> {seminar.get('speaker_email', 'N/A')}</div>
+                                    <div><span class="label">Time:</span> {seminar['date'].strftime('%Y-%m-%d')} {' '} {seminar['start_time'].strftime('%H:%M')} - {seminar['end_time'].strftime('%H:%M')}</div>
+                                    <div><span class="label">Room:</span> {seminar['room']}</div>
+                                    <div><span class="label">Speaker:</span> {seminar['speaker_name']}</div>
+                                    <div><span class="label">Email:</span> {seminar['speaker_email']}</div>
                                 </div>
                             </div>
                             """, unsafe_allow_html=True)
@@ -121,8 +123,8 @@ def show():
                         with st.expander("", expanded=True):
                             st.markdown(f"""
                             <div style='background-color: white; padding: 0px; border-radius: 5px;'>
-                                <h4 style='color: #1f77b4; margin-bottom: 10px;'>Speaker Bio</h4>
-                                {seminar.get('speaker_bio', 'No bio available.')}
+                                <h4 style='color: #1f77b4; margin-bottom: 10px;'>Speaker Bio</h4>  <!-- Custom styled title -->
+                                {seminar['speaker_bio']}
                             </div>
                             """, unsafe_allow_html=True)
 
@@ -130,8 +132,8 @@ def show():
                         with st.expander("", expanded=True):
                             st.markdown(f"""
                             <div style='background-color: white; padding: 0px; border-radius: 5px;'>
-                                <h4 style='color: #1f77b4; margin-bottom: 10px;'>Abstract</h4>
-                                {seminar.get('abstract', 'No abstract available.')}
+                                <h4 style='color: #1f77b4; margin-bottom: 10px;'>Abstract</h4>  <!-- Custom styled title -->
+                                {seminar['abstract']}
                             </div>
                             """, unsafe_allow_html=True)
 
