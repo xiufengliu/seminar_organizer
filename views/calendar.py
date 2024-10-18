@@ -137,6 +137,7 @@ def show():
             speaker_email = st.text_input("Speaker Email")  # Optional
             speaker_bio = st.text_area("Speaker Bio")  # Optional
             topic = st.text_input("Topic *")  # Mandatory field
+            abstract = st.text_area("Abstract")
             
             st.markdown("--------------")
             submitter_name = st.text_input("Your Name *")  # Mandatory field
@@ -152,7 +153,7 @@ def show():
             else:
                 success, message = db.create_seminar_request(
                     str(date), start_time.strftime("%H:%M:%S"), end_time.strftime("%H:%M:%S"),
-                    speaker_name, speaker_email, speaker_bio, topic, room,
+                    speaker_name, speaker_email, speaker_bio, topic, abstract, room,
                     submitter_name, submitter_email
                 )
                 if success:
