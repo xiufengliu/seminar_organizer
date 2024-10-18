@@ -37,8 +37,20 @@ def show():
             df['datetime'] = pd.to_datetime(df['date'].astype(str) + ' ' + df['start_time'].astype(str))
             df = df.sort_values('datetime')
 
+            # Ensure 'id' is included in the AgGrid table for selection purposes
             gb = GridOptionsBuilder.from_dataframe(df[['id', 'date', 'start_time', 'end_time', 'topic', 'speaker_name', 'room']])
-            gb.configure_selection('single', use_checkbox=True, groupSelectsChildren=True, groupSelectsFiltered=True)
+
+            # Configure the width of each column
+            gb.configure_column("id", width=80)            # Small width for 'id'
+            gb.configure_column("date", width=100)         # Smaller width for 'date'
+            gb.configure_column("start_time", width=80)    # Small width for 'start_time'
+            gb.configure_column("end_time", width=80)      # Small width for 'end_time'
+            gb.configure_column("topic", width=400)        # Larger width for 'topic'
+            gb.configure_column("speaker_name", width=150) # Normal width for 'speaker_name'
+            gb.configure_column("room", width=100)         # Normal width for 'room'
+
+            # Build the grid options
+            gb.configure_selection('single', use_checkbox=False, groupSelectsChildren=True, groupSelectsFiltered=True)
             gb.configure_grid_options(domLayout='normal')
             grid_options = gb.build()
 
