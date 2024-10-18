@@ -45,10 +45,19 @@ def show():
                                    update_mode='MODEL_CHANGED',
                                    fit_columns_on_grid_load=True)
 
-            # If a row is clicked, store selected seminar in session state
+            # Debugging: Print the structure of the selected_row
             selected_row = grid_response['selected_rows']
-            if len(selected_row) > 0:  # Check if any row is selected
-                st.session_state.selected_seminar = df[df['topic'] == selected_row[0]['topic']].iloc[0]
+            st.write("Selected Row Data:", selected_row)
+
+            # If a row is clicked, store selected seminar in session state
+            if len(selected_row) > 0:
+                # Check available keys in selected_row[0]
+                st.write("Available Keys in Selected Row:", selected_row[0].keys())
+
+                # Safely access the selected seminar by the correct key
+                selected_topic = selected_row[0].get('topic')
+                if selected_topic:
+                    st.session_state.selected_seminar = df[df['topic'] == selected_topic].iloc[0]
 
         # Display seminar details if a seminar is selected
         if st.session_state.selected_seminar is not None:
@@ -121,7 +130,6 @@ def show():
             """, unsafe_allow_html=True)
 
     
-
 
     
 
