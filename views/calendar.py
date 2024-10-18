@@ -72,7 +72,7 @@ def show():
                                     border-radius: 10px;
                                     padding: 20px;
                                     margin-bottom: 20px;
-                                    border: 1px solid #ccc; /* Added border to frame the section */
+                                    border: 1px solid #ccc;
                                 }}
                                 .seminar-details h4 {{
                                     color: #1f77b4;
@@ -94,17 +94,17 @@ def show():
                                 .speaker-abstract-container {{
                                     display: flex;
                                     justify-content: space-between;
-                                    gap: 10px; /* Reduced the gap between the Speaker Bio and Abstract sections */
+                                    gap: 10px;
                                 }}
                                 .speaker-abstract-container div {{
-                                    width: 48%; /* Adjusting width of each column */
+                                    width: 48%;
                                 }}
                             </style>
 
                             <div class="seminar-details">
                                 <h4>{seminar['topic']}</h4>
                                 <div class="seminar-info">
-                                    <div><span class="label">Time:</span> {seminar['date'].strftime('%Y-%m-%d')} {' '} {seminar['start_time'].strftime('%H:%M')} - {seminar['end_time'].strftime('%H:%M')}</div>
+                                    <div><span class="label">Time:</span> {seminar['date']} {seminar['start_time']} - {seminar['end_time']}</div>
                                     <div><span class="label">Room:</span> {seminar['room']}</div>
                                     <div><span class="label">Speaker:</span> {seminar['speaker_name']}</div>
                                     <div><span class="label">Email:</span> {seminar['speaker_email']}</div>
@@ -117,7 +117,7 @@ def show():
                         with st.expander("", expanded=True):
                             st.markdown(f"""
                             <div style='background-color: white; padding: 0px; border-radius: 5px;'>
-                                <h4 style='color: #1f77b4; margin-bottom: 10px;'>Speaker Bio</h4>  <!-- Custom styled title -->
+                                <h4 style='color: #1f77b4; margin-bottom: 10px;'>Speaker Bio</h4>
                                 {seminar['speaker_bio']}
                             </div>
                             """, unsafe_allow_html=True)
@@ -126,11 +126,10 @@ def show():
                         with st.expander("", expanded=True):
                             st.markdown(f"""
                             <div style='background-color: white; padding: 0px; border-radius: 5px;'>
-                                <h4 style='color: #1f77b4; margin-bottom: 10px;'>Abstract</h4>  <!-- Custom styled title -->
+                                <h4 style='color: #1f77b4; margin-bottom: 10px;'>Abstract</h4>
                                 {seminar['abstract']}
                             </div>
                             """, unsafe_allow_html=True)
-
 
 
 
