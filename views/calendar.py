@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 from st_aggrid import AgGrid, GridOptionsBuilder
 from database import SeminarDB
-from datetime import time
+from datetime import datetime, time
 
 # Initialize session state for selected seminar
 if 'selected_seminar' not in st.session_state:
