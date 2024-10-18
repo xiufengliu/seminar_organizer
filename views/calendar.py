@@ -55,8 +55,7 @@ def show():
             selected_rows = grid_response['selected_rows']
 
 
-             # Check if selected_rows is not empty
-            if selected_rows and not selected_rows.empty and 'id' in selected_rows.columns:
+            if selected_rows is not None and not selected_rows.empty and 'id' in selected_rows.columns:
                 # Retrieve the 'id' of the selected seminar
                 selected_seminar_id = selected_rows.iloc[0]['id']
 
