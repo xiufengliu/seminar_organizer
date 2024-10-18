@@ -30,6 +30,7 @@ def show():
             df = df.sort_values('datetime')
 
             fig = go.Figure(data=[go.Table(
+                columnwidth=[1, 1, 3, 2, 1],  # Adjusting column widths: Date, Time, Room smaller; Topic wider
                 header=dict(
                     values=['Date', 'Time', 'Topic', 'Speaker', 'Room'],
                     fill_color='#4CAF50',
@@ -39,7 +40,7 @@ def show():
                 cells=dict(
                     values=[
                         df.date.dt.strftime('%Y-%m-%d'),
-                        df.start_time.apply(lambda t: t.strftime('%H:%M')) + ' - ' + df.end_time.apply(lambda t: t.strftime('%H:%M')),  # Format time without seconds
+                        df.start_time.apply(lambda t: t.strftime('%H:%M')) + ' - ' + df.end_time.apply(lambda t: t.strftime('%H:%M')),
                         df.topic,
                         df.speaker_name,
                         df.room
@@ -59,6 +60,7 @@ def show():
             )
 
             st.plotly_chart(fig, use_container_width=True)
+
 
 
             st.markdown('-----------------')
