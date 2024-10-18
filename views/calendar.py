@@ -63,38 +63,73 @@ def show():
             # Display seminar details if a seminar is selected
             if st.session_state.selected_seminar is not None:
                 seminar = st.session_state.selected_seminar
-                st.write("Debug: Available columns:", df.columns.tolist())
                 
-                st.markdown(f"""
-                    <div class="seminar-details">
-                        <h4>{seminar.get('topic', 'N/A')}</h4>
-                        <div class="seminar-info">
-                            <div><span class="label">Date:</span> {seminar.get('date', 'N/A')}</div>
-                            <div><span class="label">Time:</span> {seminar.get('start_time', 'N/A')} - {seminar.get('end_time', 'N/A')}</div>
-                            <div><span class="label">Room:</span> {seminar.get('room', 'N/A')}</div>
-                            <div><span class="label">Speaker:</span> {seminar.get('speaker_name', 'N/A')}</div>
-                            <div><span class="label">Email:</span> {seminar.get('speaker_email', 'N/A')}</div>
-                        </div>
-                    </div>
-                """, unsafe_allow_html=True)
+                with st.container():
+                    st.markdown(f"""
+                            <style>
+                                .seminar-details {{
+                                    background-color: #f0f2f6;
+                                    border-radius: 10px;
+                                    padding: 20px;
+                                    margin-bottom: 20px;
+                                    border: 1px solid #ccc; /* Added border to frame the section */
+                                }}
+                                .seminar-details h4 {{
+                                    color: #1f77b4;
+                                    margin-bottom: 15px;
+                                }}
+                                .seminar-details .label {{
+                                    font-weight: bold;
+                                    color: #2c3e50;
+                                }}
+                                .seminar-info {{
+                                    display: flex;
+                                    flex-wrap: wrap;
+                                    justify-content: space-between;
+                                }}
+                                .seminar-info div {{
+                                    width: 45%;
+                                    margin-bottom: 10px;
+                                }}
+                                .speaker-abstract-container {{
+                                    display: flex;
+                                    justify-content: space-between;
+                                    gap: 10px; /* Reduced the gap between the Speaker Bio and Abstract sections */
+                                }}
+                                .speaker-abstract-container div {{
+                                    width: 48%; /* Adjusting width of each column */
+                                }}
+                            </style>
 
-                # Speaker bio and abstract
-                st.markdown(f"""
-                    <div class="speaker-abstract-container">
-                        <div>
-                            <h4 style='color: #1f77b4; margin-bottom: 10px;'>Speaker Bio</h4>
-                            <div style='background-color: white; padding: 0px; border-radius: 5px;'>
-                                {seminar.get('speaker_bio', 'N/A')}
+                            <div class="seminar-details">
+                                <h4>{seminar['topic']}</h4>
+                                <div class="seminar-info">
+                                    <div><span class="label">Time:</span> {seminar['date'].strftime('%Y-%m-%d')} {' '} {seminar['start_time'].strftime('%H:%M')} - {seminar['end_time'].strftime('%H:%M')}</div>
+                                    <div><span class="label">Room:</span> {seminar['room']}</div>
+                                    <div><span class="label">Speaker:</span> {seminar['speaker_name']}</div>
+                                    <div><span class="label">Email:</span> {seminar['speaker_email']}</div>
+                                </div>
                             </div>
-                        </div>
-                        <div>
-                            <h4 style='color: #1f77b4; margin-bottom: 10px;'>Abstract</h4>
+                            """, unsafe_allow_html=True)
+
+                    col1, col2 = st.columns(2)
+                    with col1:
+                        with st.expander("", expanded=True):
+                            st.markdown(f"""
                             <div style='background-color: white; padding: 0px; border-radius: 5px;'>
-                                {seminar.get('abstract', 'N/A')}
+                                <h4 style='color: #1f77b4; margin-bottom: 10px;'>Speaker Bio</h4>  <!-- Custom styled title -->
+                                {seminar['speaker_bio']}
                             </div>
-                        </div>
-                    </div>
-                """, unsafe_allow_html=True)
+                            """, unsafe_allow_html=True)
+
+                    with col2:
+                        with st.expander("", expanded=True):
+                            st.markdown(f"""
+                            <div style='background-color: white; padding: 0px; border-radius: 5px;'>
+                                <h4 style='color: #1f77b4; margin-bottom: 10px;'>Abstract</h4>  <!-- Custom styled title -->
+                                {seminar['abstract']}
+                            </div>
+                            """, unsafe_allow_html=True)
 
 
 
