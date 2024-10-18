@@ -45,19 +45,14 @@ def show():
                                    update_mode='MODEL_CHANGED',
                                    fit_columns_on_grid_load=True)
 
-            # Debugging: Print the structure of the selected_row
+            # Print the selected row to inspect structure
             selected_row = grid_response['selected_rows']
             st.write("Selected Row Data:", selected_row)
 
-            # If a row is clicked, store selected seminar in session state
+            # Safely access the selected seminar
             if len(selected_row) > 0:
-                # Check available keys in selected_row[0]
-                st.write("Available Keys in Selected Row:", selected_row[0].keys())
-
-                # Safely access the selected seminar by the correct key
-                selected_topic = selected_row[0].get('topic')
-                if selected_topic:
-                    st.session_state.selected_seminar = df[df['topic'] == selected_topic].iloc[0]
+                selected_seminar = selected_row[0]  # Assuming AgGrid returns a dictionary of row data
+                st.session_state.selected_seminar = selected_seminar
 
         # Display seminar details if a seminar is selected
         if st.session_state.selected_seminar is not None:
@@ -102,8 +97,8 @@ def show():
                 <div class="seminar-details">
                     <h4>{seminar['topic']}</h4>
                     <div class="seminar-info">
-                        <div><span class="label">Date:</span> {seminar['date'].strftime('%Y-%m-%d')}</div>
-                        <div><span class="label">Time:</span> {seminar['start_time'].strftime('%H:%M')} - {seminar['end_time'].strftime('%H:%M')}</div>
+                        <div><span class="label">Date:</span> {seminar['date']}</div>
+                        <div><span class="label">Time:</span> {seminar['start_time']} - {seminar['end_time']}</div>
                         <div><span class="label">Room:</span> {seminar['room']}</div>
                         <div><span class="label">Speaker:</span> {seminar['speaker_name']}</div>
                         <div><span class="label">Email:</span> {seminar['speaker_email']}</div>
@@ -131,7 +126,6 @@ def show():
 
     
 
-    
 
     with tab2:
         st.subheader("Request a Seminar")
