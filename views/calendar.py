@@ -45,9 +45,11 @@ def show():
                                    update_mode='MODEL_CHANGED',
                                    fit_columns_on_grid_load=True)
 
-            # Check if selected_row is not None and not empty
+            # Access the selected row safely
             selected_row = grid_response['selected_rows']
-            if selected_row and len(selected_row) > 0:  # Use len() because selected_row is a list of dictionaries
+            
+            # Check if selected_row is a list and has elements
+            if isinstance(selected_row, list) and len(selected_row) > 0:
                 selected_seminar = selected_row[0]  # Assuming AgGrid returns a list of dictionaries
                 st.session_state.selected_seminar = selected_seminar
 
@@ -121,7 +123,6 @@ def show():
                 </div>
             """, unsafe_allow_html=True)
 
-   
 
 
 
