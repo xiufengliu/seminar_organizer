@@ -47,9 +47,8 @@ def show():
 
             # If a row is clicked, store selected seminar in session state
             selected_row = grid_response['selected_rows']
-            if len(selected_row) > 0:
+            if len(selected_row) > 0:  # Check if any row is selected
                 st.session_state.selected_seminar = df[df['topic'] == selected_row[0]['topic']].iloc[0]
-
 
         # Display seminar details if a seminar is selected
         if st.session_state.selected_seminar is not None:
@@ -120,6 +119,9 @@ def show():
                     </div>
                 </div>
             """, unsafe_allow_html=True)
+
+    
+
 
     
 
