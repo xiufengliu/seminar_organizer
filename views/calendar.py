@@ -41,13 +41,13 @@ def show():
             gb = GridOptionsBuilder.from_dataframe(df[['id', 'date', 'start_time', 'end_time', 'topic', 'speaker_name', 'room']])
 
             # Configure the width of each column
-            gb.configure_column("id", width=10)            # Small width for 'id'
-            gb.configure_column("date", width=100)         # Smaller width for 'date'
-            gb.configure_column("start_time", width=80)    # Small width for 'start_time'
-            gb.configure_column("end_time", width=80)      # Small width for 'end_time'
+            gb.configure_column("id", width=15)            # Small width for 'id'
+            gb.configure_column("date", width=80)         # Smaller width for 'date'
+            gb.configure_column("start_time", width=60)    # Small width for 'start_time'
+            gb.configure_column("end_time", width=60)      # Small width for 'end_time'
             gb.configure_column("topic", width=400)        # Larger width for 'topic'
-            gb.configure_column("speaker_name", width=150) # Normal width for 'speaker_name'
-            gb.configure_column("room", width=100)         # Normal width for 'room'
+            gb.configure_column("speaker_name", width=120) # Normal width for 'speaker_name'
+            gb.configure_column("room", width=80)         # Normal width for 'room'
 
             # Build the grid options
             gb.configure_selection('single', use_checkbox=False, groupSelectsChildren=True, groupSelectsFiltered=True)
