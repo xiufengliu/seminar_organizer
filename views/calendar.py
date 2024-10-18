@@ -110,8 +110,7 @@ def show():
                             <div class="seminar-details">
                                 <h4>{seminar['topic']}</h4>
                                 <div class="seminar-info">
-                                    <div><span class="label">Date:</span> {seminar['date'].strftime('%Y-%m-%d')}</div>
-                                    <div><span class="label">Time:</span> {seminar['start_time'].strftime('%H:%M')} - {seminar['end_time'].strftime('%H:%M')}</div>
+                                    <div><span class="label">Time:</span> {seminar['date'].strftime('%Y-%m-%d')} {' '} {seminar['start_time'].strftime('%H:%M')} - {seminar['end_time'].strftime('%H:%M')}</div>
                                     <div><span class="label">Room:</span> {seminar['room']}</div>
                                     <div><span class="label">Speaker:</span> {seminar['speaker_name']}</div>
                                     <div><span class="label">Email:</span> {seminar['speaker_email']}</div>
