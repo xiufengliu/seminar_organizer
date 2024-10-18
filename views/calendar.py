@@ -58,75 +58,75 @@ def show():
 
 
 
-        # Display seminar details if a seminar is selected
-        if st.session_state.selected_seminar is not None:
-            seminar = st.session_state.selected_seminar
-            
-            st.markdown(f"""
-                <style>
-                    .seminar-details {{
-                        background-color: #f0f2f6;
-                        border-radius: 10px;
-                        padding: 20px;
-                        margin-bottom: 20px;
-                        border: 1px solid #ccc;
-                    }}
-                    .seminar-details h4 {{
-                        color: #1f77b4;
-                        margin-bottom: 15px;
-                    }}
-                    .seminar-details .label {{
-                        font-weight: bold;
-                        color: #2c3e50;
-                    }}
-                    .seminar-info {{
-                        display: flex;
-                        flex-wrap: wrap;
-                        justify-content: space-between;
-                    }}
-                    .seminar-info div {{
-                        width: 45%;
-                        margin-bottom: 10px;
-                    }}
-                    .speaker-abstract-container {{
-                        display: flex;
-                        justify-content: space-between;
-                        gap: 10px;
-                    }}
-                    .speaker-abstract-container div {{
-                        width: 48%;
-                    }}
-                </style>
+            # Display seminar details if a seminar is selected
+            if st.session_state.selected_seminar is not None:
+                seminar = st.session_state.selected_seminar
+                
+                st.markdown(f"""
+                    <style>
+                        .seminar-details {{
+                            background-color: #f0f2f6;
+                            border-radius: 10px;
+                            padding: 20px;
+                            margin-bottom: 20px;
+                            border: 1px solid #ccc;
+                        }}
+                        .seminar-details h4 {{
+                            color: #1f77b4;
+                            margin-bottom: 15px;
+                        }}
+                        .seminar-details .label {{
+                            font-weight: bold;
+                            color: #2c3e50;
+                        }}
+                        .seminar-info {{
+                            display: flex;
+                            flex-wrap: wrap;
+                            justify-content: space-between;
+                        }}
+                        .seminar-info div {{
+                            width: 45%;
+                            margin-bottom: 10px;
+                        }}
+                        .speaker-abstract-container {{
+                            display: flex;
+                            justify-content: space-between;
+                            gap: 10px;
+                        }}
+                        .speaker-abstract-container div {{
+                            width: 48%;
+                        }}
+                    </style>
 
-                <div class="seminar-details">
-                    <h4>{seminar['topic']}</h4>
-                    <div class="seminar-info">
-                        <div><span class="label">Date:</span> {seminar['date']}</div>
-                        <div><span class="label">Time:</span> {seminar['start_time']} - {seminar['end_time']}</div>
-                        <div><span class="label">Room:</span> {seminar['room']}</div>
-                        <div><span class="label">Speaker:</span> {seminar['speaker_name']}</div>
-                        <div><span class="label">Email:</span> {seminar['speaker_email']}</div>
-                    </div>
-                </div>
-            """, unsafe_allow_html=True)
-
-            # Speaker bio and abstract
-            st.markdown(f"""
-                <div class="speaker-abstract-container">
-                    <div>
-                        <h4 style='color: #1f77b4; margin-bottom: 10px;'>Speaker Bio</h4>
-                        <div style='background-color: white; padding: 0px; border-radius: 5px;'>
-                            {seminar['speaker_bio']}
+                    <div class="seminar-details">
+                        <h4>{seminar['topic']}</h4>
+                        <div class="seminar-info">
+                            <div><span class="label">Date:</span> {seminar['date']}</div>
+                            <div><span class="label">Time:</span> {seminar['start_time']} - {seminar['end_time']}</div>
+                            <div><span class="label">Room:</span> {seminar['room']}</div>
+                            <div><span class="label">Speaker:</span> {seminar['speaker_name']}</div>
+                            <div><span class="label">Email:</span> {seminar['speaker_email']}</div>
                         </div>
                     </div>
-                    <div>
-                        <h4 style='color: #1f77b4; margin-bottom: 10px;'>Abstract</h4>
-                        <div style='background-color: white; padding: 0px; border-radius: 5px;'>
-                            {seminar['abstract']}
+                """, unsafe_allow_html=True)
+
+                # Speaker bio and abstract
+                st.markdown(f"""
+                    <div class="speaker-abstract-container">
+                        <div>
+                            <h4 style='color: #1f77b4; margin-bottom: 10px;'>Speaker Bio</h4>
+                            <div style='background-color: white; padding: 0px; border-radius: 5px;'>
+                                {seminar['speaker_bio']}
+                            </div>
+                        </div>
+                        <div>
+                            <h4 style='color: #1f77b4; margin-bottom: 10px;'>Abstract</h4>
+                            <div style='background-color: white; padding: 0px; border-radius: 5px;'>
+                                {seminar['abstract']}
+                            </div>
                         </div>
                     </div>
-                </div>
-            """, unsafe_allow_html=True)
+                """, unsafe_allow_html=True)
 
 
 
