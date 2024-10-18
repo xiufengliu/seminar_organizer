@@ -1,6 +1,6 @@
 import streamlit as st
 import pandas as pd
-import plotly.graph_objects as go
+from st_aggrid import AgGrid, GridOptionsBuilder
 from database import SeminarDB
 from datetime import time
 
@@ -33,46 +33,24 @@ def show():
             df['datetime'] = pd.to_datetime(df['date'].astype(str) + ' ' + df['start_time'].astype(str))
             df = df.sort_values('datetime')
 
-            # Create the clickable table
-            fig = go.Figure(data=[go.Table(
-                columnwidth=[1, 1, 4, 1, 1],
-                header=dict(
-                    values=['Date', 'Time', 'Topic', 'Speaker', 'Room'],
-                    fill_color='#4CAF50',
-                    align='left',
-                    font=dict(color='white', size=14)
-                ),
-                cells=dict(
-                    values=[
-                        df.date.dt.strftime('%Y-%m-%d'),
-                        df.start_time.apply(lambda t: t.strftime('%H:%M')) + ' - ' + df.end_time.apply(lambda t: t.strftime('%H:%M')),
-                        df.topic,
-                        df.speaker_name,
-                        df.room
-                    ],
-                    align='left',
-                    font=dict(color='darkslate gray', size=13),
-                    fill_color='white',
-                    height=30
-                )
-            )])
+            # Build AgGrid table
+            gb = GridOptionsBuilder.from_dataframe(df[['date', 'start_time', 'end_time', 'topic', 'speaker_name', 'room']])
+            gb.configure_selection('single')  # Allows single row selection
+            grid_options = gb.build()
 
-            fig.update_layout(
-                title='Upcoming Seminars',
-                height=300,
-                margin=dict(l=0, r=0, t=30, b=0),
-                paper_bgcolor='white'
-            )
+            # Display AgGrid table
+            grid_response = AgGrid(df[['date', 'start_time', 'end_time', 'topic', 'speaker_name', 'room']],
+                                   gridOptions=grid_options,
+                                   height=300,
+                                   update_mode='MODEL_CHANGED',
+                                   fit_columns_on_grid_load=True)
 
-            # Display Plotly chart
-            st.plotly_chart(fig, use_container_width=True)
+            # If a row is clicked, store selected seminar in session state
+            selected_row = grid_response['selected_rows']
+            if selected_row:
+                st.session_state.selected_seminar = df[df['topic'] == selected_row[0]['topic']].iloc[0]
 
-            # Detect topic click and update selected seminar in session state
-            selected_topic = st.text_input("Click on the topic row to select a seminar:", "")
-            if selected_topic in df['topic'].values:
-                st.session_state.selected_seminar = df[df['topic'] == selected_topic].iloc[0]
-
-        # If a seminar is selected, display its details below the table
+        # Display seminar details if a seminar is selected
         if st.session_state.selected_seminar is not None:
             seminar = st.session_state.selected_seminar
             
@@ -124,7 +102,7 @@ def show():
                 </div>
             """, unsafe_allow_html=True)
 
-            # Display speaker bio and abstract side-by-side
+            # Speaker bio and abstract
             st.markdown(f"""
                 <div class="speaker-abstract-container">
                     <div>
@@ -142,6 +120,7 @@ def show():
                 </div>
             """, unsafe_allow_html=True)
 
+    
 
     with tab2:
         st.subheader("Request a Seminar")
