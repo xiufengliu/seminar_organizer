@@ -119,26 +119,25 @@ def show():
                             </div>
                             """, unsafe_allow_html=True)
 
-                    st.markdown(f"""
-                        <div class="speaker-abstract-container">
-                            <div>
-                                <h4 style='color: #1f77b4; margin-bottom: 10px;'>Speaker Bio</h4>
-                                <div style='background-color: white; padding: 0px; border-radius: 5px;'>
-                                    {seminar['speaker_bio']}
-                                </div>
+                    col1, col2 = st.columns(2)
+                    with col1:
+                        with st.expander("", expanded=True):
+                            st.markdown(f"""
+                            <div style='background-color: white; padding: 0px; border-radius: 5px;'>
+                                <h4 style='color: #1f77b4; margin-bottom: 10px;'>Speaker Bio</h4>  <!-- Custom styled title -->
+                                {seminar['speaker_bio']}
                             </div>
-                            <div>
-                                <h4 style='color: #1f77b4; margin-bottom: 10px;'>Abstract</h4>
-                                <div style='background-color: white; padding: 0px; border-radius: 5px;'>
-                                    {seminar['abstract']}
-                                </div>
+                            """, unsafe_allow_html=True)
+
+                    with col2:
+                        with st.expander("", expanded=True):
+                            st.markdown(f"""
+                            <div style='background-color: white; padding: 0px; border-radius: 5px;'>
+                                <h4 style='color: #1f77b4; margin-bottom: 10px;'>Abstract</h4>  <!-- Custom styled title -->
+                                {seminar['abstract']}
                             </div>
-                        </div>
-                    """, unsafe_allow_html=True)
+                            """, unsafe_allow_html=True)
 
-
-
-# In the "Request Seminar" tab of calendar.py
 
     with tab2:
         st.subheader("Request a Seminar")
