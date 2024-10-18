@@ -46,8 +46,8 @@ def show():
             gb.configure_column("start_time", width=35)    # Small width for 'start_time'
             gb.configure_column("end_time", width=35)      # Small width for 'end_time'
             gb.configure_column("topic", width=350)        # Larger width for 'topic'
-            gb.configure_column("speaker_name", width=100) # Normal width for 'speaker_name'
-            gb.configure_column("room", width=40)         # Normal width for 'room'
+            gb.configure_column("speaker_name", width=80) # Normal width for 'speaker_name'
+            gb.configure_column("room", width=60)         # Normal width for 'room'
 
             # Build the grid options
             gb.configure_selection('single', use_checkbox=False, groupSelectsChildren=True, groupSelectsFiltered=True)
