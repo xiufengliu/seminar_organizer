@@ -31,9 +31,9 @@ def show():
             st.warning("No upcoming seminars found.")
         else:
             df = pd.DataFrame(seminars, columns=['id', 'date', 'start_time', 'end_time', 'speaker_name', 'speaker_email', 'speaker_bio', 'topic', 'abstract', 'room'])
-            df['date'] = pd.to_datetime(df['date'])
-            df['start_time'] = pd.to_datetime(df['start_time'], format='%H:%M:%S').dt.time
-            df['end_time'] = pd.to_datetime(df['end_time'], format='%H:%M:%S').dt.time
+            df['date'] = pd.to_datetime(df['date']).dt.strftime('%d/%m/%Y')  # Show only date in format: DD/MM/YYYY
+            df['start_time'] = pd.to_datetime(df['start_time'], format='%H:%M:%S').dt.strftime('%H:%M')  # Strip seconds
+            df['end_time'] = pd.to_datetime(df['end_time'], format='%H:%M:%S').dt.strftime('%H:%M')  # Strip seconds
             df['datetime'] = pd.to_datetime(df['date'].astype(str) + ' ' + df['start_time'].astype(str))
             df = df.sort_values('datetime')
 
@@ -41,7 +41,7 @@ def show():
             gb = GridOptionsBuilder.from_dataframe(df[['id', 'date', 'start_time', 'end_time', 'topic', 'speaker_name', 'room']])
 
             # Configure the width of each column
-            gb.configure_column("id", width=80)            # Small width for 'id'
+            gb.configure_column("id", width=10)            # Small width for 'id'
             gb.configure_column("date", width=100)         # Smaller width for 'date'
             gb.configure_column("start_time", width=80)    # Small width for 'start_time'
             gb.configure_column("end_time", width=80)      # Small width for 'end_time'
@@ -80,6 +80,9 @@ def show():
             # Display seminar details if a seminar is selected
             if st.session_state.selected_seminar is not None:
                 seminar = st.session_state.selected_seminar
+                seminar_date = pd.to_datetime(seminar['date']).strftime('%Y-%m-%d')  # Format date to YYYY-MM-DD
+                seminar_start_time = seminar['start_time']  # Already formatted in AgGrid
+                seminar_end_time = seminar['end_time']
                 with st.container():
                     st.markdown(f"""
                             <style>
@@ -119,7 +122,7 @@ def show():
                             <div class="seminar-details">
                                 <h4>{seminar.get('topic', 'N/A')}</h4>
                                 <div class="seminar-info">
-                                    <div><span class="label">Time:</span> {seminar.get('date', 'N/A')} {seminar.get('start_time', 'N/A')} - {seminar.get('end_time', 'N/A')}</div>
+                                    <div><span class="label">Time:</span> {seminar_date} {seminar_start_time} - {seminar_end_time}</div>
                                     <div><span class="label">Room:</span> {seminar.get('room', 'N/A')}</div>
                                     <div><span class="label">Speaker:</span> {seminar.get('speaker_name', 'N/A')}</div>
                                     <div><span class="label">Email:</span> {seminar.get('speaker_email', 'N/A')}</div>
