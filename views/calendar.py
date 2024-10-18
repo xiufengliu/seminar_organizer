@@ -102,20 +102,20 @@ def show():
                 # Speaker bio and abstract in separate containers
                 col1, col2 = st.columns(2)
                 with col1:
-                    with st.expander("Speaker Bio", expanded=True):
+                    with st.expander("", expanded=True):
                         st.markdown(f"""
                         <div style='background-color: white; padding: 10px; border-radius: 5px;'>
                             <h4 style='color: #1f77b4; margin-bottom: 10px;'>Speaker Bio</h4>  <!-- Custom styled title -->
-                            <strong>{seminar['speaker_bio']}</strong>
+                            {seminar['speaker_bio']}
                         </div>
                         """, unsafe_allow_html=True)
 
                 with col2:
-                    with st.expander("Abstract", expanded=True):
+                    with st.expander("", expanded=True):
                         st.markdown(f"""
                         <div style='background-color: white; padding: 10px; border-radius: 5px;'>
                             <h4 style='color: #1f77b4; margin-bottom: 10px;'>Abstract</h4>  <!-- Custom styled title -->
-                            <strong>{seminar['abstract']}</strong>
+                            {seminar['abstract']}
                         </div>
                         """, unsafe_allow_html=True)
 
