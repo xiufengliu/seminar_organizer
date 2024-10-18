@@ -30,7 +30,7 @@ def show():
             df = df.sort_values('datetime')
 
             fig = go.Figure(data=[go.Table(
-                columnwidth=[1, 1, 3, 2, 1],  # Adjusting column widths: Date, Time, Room smaller; Topic wider
+                columnwidth=[1, 1, 4, 1, 1],  # Adjusting column widths: Date, Time, Room smaller; Topic wider
                 header=dict(
                     values=['Date', 'Time', 'Topic', 'Speaker', 'Room'],
                     fill_color='#4CAF50',
