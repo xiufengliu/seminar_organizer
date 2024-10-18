@@ -78,8 +78,9 @@ def show():
                                     border-radius: 10px;
                                     padding: 20px;
                                     margin-bottom: 20px;
+                                    border: 1px solid #ccc; /* Added border to frame the section */
                                 }}
-                                .seminar-details h4 {{  <!-- Changed from h3 to h4 -->
+                                .seminar-details h4 {{
                                     color: #1f77b4;
                                     margin-bottom: 15px;
                                 }}
@@ -87,39 +88,53 @@ def show():
                                     font-weight: bold;
                                     color: #2c3e50;
                                 }}
+                                .seminar-info {{
+                                    display: flex;
+                                    flex-wrap: wrap;
+                                    justify-content: space-between;
+                                }}
+                                .seminar-info div {{
+                                    width: 45%;
+                                    margin-bottom: 10px;
+                                }}
+                                .speaker-abstract-container {{
+                                    display: flex;
+                                    justify-content: space-between;
+                                    gap: 10px; /* Reduced the gap between the Speaker Bio and Abstract sections */
+                                }}
+                                .speaker-abstract-container div {{
+                                    width: 48%; /* Adjusting width of each column */
+                                }}
                             </style>
+
                             <div class="seminar-details">
-                                <h4>{seminar['topic']}</h4>  <!-- Changed from h3 to h4 -->
-                                <p><span class="label">Date:</span> {seminar['date'].strftime('%Y-%m-%d')}</p>
-                                <p><span class="label">Time:</span> {seminar['start_time'].strftime('%H:%M')} - {seminar['end_time'].strftime('%H:%M')}</p>  <!-- Remove seconds from time -->
-                                <p><span class="label">Room:</span> {seminar['room']}</p>
-                                <p><span class="label">Speaker:</span> {seminar['speaker_name']}</p>
-                                <p><span class="label">Email:</span> {seminar['speaker_email']}</p>
+                                <h4>{seminar['topic']}</h4>
+                                <div class="seminar-info">
+                                    <div><span class="label">Date:</span> {seminar['date'].strftime('%Y-%m-%d')}</div>
+                                    <div><span class="label">Time:</span> {seminar['start_time'].strftime('%H:%M')} - {seminar['end_time'].strftime('%H:%M')}</div>
+                                    <div><span class="label">Room:</span> {seminar['room']}</div>
+                                    <div><span class="label">Speaker:</span> {seminar['speaker_name']}</div>
+                                    <div><span class="label">Email:</span> {seminar['speaker_email']}</div>
+                                </div>
                             </div>
                             """, unsafe_allow_html=True)
 
-
-
-                # Speaker bio and abstract in separate containers
-                # Speaker bio and abstract in separate containers
-                col1, col2 = st.columns(2)
-                with col1:
-                    with st.expander("", expanded=True):
-                        st.markdown(f"""
-                        <div style='background-color: white; padding: 0px; border-radius: 5px;'>
-                            <h4 style='color: #1f77b4; margin-bottom: 10px;'>Speaker Bio</h4>  <!-- Custom styled title -->
-                            {seminar['speaker_bio']}
+                    st.markdown(f"""
+                        <div class="speaker-abstract-container">
+                            <div>
+                                <h4 style='color: #1f77b4; margin-bottom: 10px;'>Speaker Bio</h4>
+                                <div style='background-color: white; padding: 0px; border-radius: 5px;'>
+                                    {seminar['speaker_bio']}
+                                </div>
+                            </div>
+                            <div>
+                                <h4 style='color: #1f77b4; margin-bottom: 10px;'>Abstract</h4>
+                                <div style='background-color: white; padding: 0px; border-radius: 5px;'>
+                                    {seminar['abstract']}
+                                </div>
+                            </div>
                         </div>
-                        """, unsafe_allow_html=True)
-
-                with col2:
-                    with st.expander("", expanded=True):
-                        st.markdown(f"""
-                        <div style='background-color: white; padding: 0px; border-radius: 5px;'>
-                            <h4 style='color: #1f77b4; margin-bottom: 10px;'>Abstract</h4>  <!-- Custom styled title -->
-                            {seminar['abstract']}
-                        </div>
-                        """, unsafe_allow_html=True)
+                    """, unsafe_allow_html=True)
 
 
 
