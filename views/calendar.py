@@ -31,7 +31,7 @@ def show():
             st.warning("No upcoming seminars found.")
         else:
             df = pd.DataFrame(seminars, columns=['id', 'date', 'start_time', 'end_time', 'speaker_name', 'speaker_email', 'speaker_bio', 'topic', 'abstract', 'room'])
-            df['date'] = pd.to_datetime(df['date']).dt.strftime('%d/%m/%Y')  # Show only date in format: DD/MM/YYYY
+            df['date'] = pd.to_datetime(df['date']).dt.strftime('%Y-%m-%d')  # Show only date in format: DD/MM/YYYY
             df['start_time'] = pd.to_datetime(df['start_time'], format='%H:%M:%S').dt.strftime('%H:%M')  # Strip seconds
             df['end_time'] = pd.to_datetime(df['end_time'], format='%H:%M:%S').dt.strftime('%H:%M')  # Strip seconds
             df['datetime'] = pd.to_datetime(df['date'].astype(str) + ' ' + df['start_time'].astype(str))
