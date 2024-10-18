@@ -54,7 +54,7 @@ def show():
 
             fig.update_layout(
                 title='Upcoming Seminars',
-                height=250,  # Set a fixed height for the table
+                height=300,  # Set a fixed height for the table
                 margin=dict(l=0, r=0, t=30, b=0),
                 paper_bgcolor='white'
             )
