@@ -48,10 +48,18 @@ def show():
             # Access the selected row safely
             selected_row = grid_response['selected_rows']
             
-            # Check if selected_row is a list and has elements
-            if isinstance(selected_row, list) and len(selected_row) > 0:
+                        # Check if selected_row is not None and not empty
+            st.write("Debug: Type of selected_row:", type(selected_row))
+            st.write("Debug: Content of selected_row:", selected_row)
+
+            if selected_row is not None and len(selected_row) > 0:
                 selected_seminar = selected_row[0]  # Assuming AgGrid returns a list of dictionaries
                 st.session_state.selected_seminar = selected_seminar
+                st.write("Debug: Selected seminar:", selected_seminar)
+            else:
+                st.write("Debug: No row selected")
+
+
 
         # Display seminar details if a seminar is selected
         if st.session_state.selected_seminar is not None:
