@@ -40,22 +40,28 @@ def show():
                     values=[
                         df.date.dt.strftime('%Y-%m-%d'),
                         df.start_time.astype(str) + ' - ' + df.end_time.astype(str),
-                        df.topic,  # Changed from df.abstract to df.topic
+                        df.topic,
                         df.speaker_name,
                         df.room
                     ],
                     align='left',
-                    font=dict(color='darkslate gray', size=13)
+                    font=dict(color='darkslate gray', size=13),
+                    fill_color='white',
+                    height=30  # Adjust row height for better spacing
                 )
             )])
 
+            # Enable scrolling by setting a fixed height
             fig.update_layout(
                 title='Upcoming Seminars',
-                height=240,
+                height=400,  # Set a fixed height for the table
                 margin=dict(l=0, r=0, t=30, b=0),
+                paper_bgcolor='white'
             )
 
+            # Allow scroll bars when necessary
             st.plotly_chart(fig, use_container_width=True)
+
             st.markdown('-----------------')
             st.subheader("Seminar Details")
             selected_seminar = st.selectbox("Select a seminar for more information", df['topic'])
@@ -92,14 +98,24 @@ def show():
                     """, unsafe_allow_html=True)
 
                 # Speaker bio and abstract in separate containers
+                # Speaker bio and abstract in separate containers
                 col1, col2 = st.columns(2)
                 with col1:
                     with st.expander("Speaker Bio", expanded=True):
-                        st.markdown(f"<div style='background-color: #e6f3ff; padding: 10px; border-radius: 5px;'>{seminar['speaker_bio']}</div>", unsafe_allow_html=True)
+                        st.markdown(f"""
+                        <div style='background-color: white; padding: 10px; border-radius: 5px;'>
+                            <strong>{seminar['speaker_bio']}</strong>
+                        </div>
+                        """, unsafe_allow_html=True)
+                        
                 with col2:
                     with st.expander("Abstract", expanded=True):
-                        st.markdown(f"<div style='background-color: #fff6e6; padding: 10px; border-radius: 5px;'>{seminar['abstract']}</div>", unsafe_allow_html=True)
-# In the "Request Seminar" tab of calendar.py
+                        st.markdown(f"""
+                        <div style='background-color: white; padding: 10px; border-radius: 5px;'>
+                            <strong>{seminar['abstract']}</strong>
+                        </div>
+                        """, unsafe_allow_html=True)
+
 
 # In the "Request Seminar" tab of calendar.py
 
