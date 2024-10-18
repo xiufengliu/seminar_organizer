@@ -72,31 +72,32 @@ def show():
                 # Create a styled container for seminar details
                 with st.container():
                     st.markdown(f"""
-                        <style>
-                            .seminar-details {{
-                                background-color: #f0f2f6;
-                                border-radius: 10px;
-                                padding: 20px;
-                                margin-bottom: 20px;
-                            }}
-                            .seminar-details h4 {{  <!-- Changed from h3 to h4 -->
-                                color: #1f77b4;
-                                margin-bottom: 15px;
-                            }}
-                            .seminar-details .label {{
-                                font-weight: bold;
-                                color: #2c3e50;
-                            }}
-                        </style>
-                        <div class="seminar-details">
-                            <h4>{seminar['topic']}</h4>  <!-- Changed from h3 to h4 -->
-                            <p><span class="label">Date:</span> {seminar['date'].strftime('%Y-%m-%d')}</p>
-                            <p><span class="label">Time:</span> {seminar['start_time']} - {seminar['end_time']}</p>
-                            <p><span class="label">Room:</span> {seminar['room']}</p>
-                            <p><span class="label">Speaker:</span> {seminar['speaker_name']}</p>
-                            <p><span class="label">Email:</span> {seminar['speaker_email']}</p>
-                        </div>
-                        """, unsafe_allow_html=True)
+                            <style>
+                                .seminar-details {{
+                                    background-color: #f0f2f6;
+                                    border-radius: 10px;
+                                    padding: 20px;
+                                    margin-bottom: 20px;
+                                }}
+                                .seminar-details h4 {{  <!-- Changed from h3 to h4 -->
+                                    color: #1f77b4;
+                                    margin-bottom: 15px;
+                                }}
+                                .seminar-details .label {{
+                                    font-weight: bold;
+                                    color: #2c3e50;
+                                }}
+                            </style>
+                            <div class="seminar-details">
+                                <h4>{seminar['topic']}</h4>  <!-- Changed from h3 to h4 -->
+                                <p><span class="label">Date:</span> {seminar['date'].strftime('%Y-%m-%d')}</p>
+                                <p><span class="label">Time:</span> {seminar['start_time'].strftime('%H:%M')} - {seminar['end_time'].strftime('%H:%M')}</p>  <!-- Remove seconds from time -->
+                                <p><span class="label">Room:</span> {seminar['room']}</p>
+                                <p><span class="label">Speaker:</span> {seminar['speaker_name']}</p>
+                                <p><span class="label">Email:</span> {seminar['speaker_email']}</p>
+                            </div>
+                            """, unsafe_allow_html=True)
+
 
 
                 # Speaker bio and abstract in separate containers
