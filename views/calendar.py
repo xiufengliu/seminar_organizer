@@ -45,13 +45,10 @@ def show():
                                    update_mode='MODEL_CHANGED',
                                    fit_columns_on_grid_load=True)
 
-            # Print the selected row to inspect structure
+            # Check if selected_row is not None before accessing it
             selected_row = grid_response['selected_rows']
-            st.write("Selected Row Data:", selected_row)
-
-            # Safely access the selected seminar
-            if len(selected_row) > 0:
-                selected_seminar = selected_row[0]  # Assuming AgGrid returns a dictionary of row data
+            if selected_row and len(selected_row) > 0:
+                selected_seminar = selected_row[0]  # AgGrid returns a dictionary of row data
                 st.session_state.selected_seminar = selected_seminar
 
         # Display seminar details if a seminar is selected
@@ -125,6 +122,7 @@ def show():
             """, unsafe_allow_html=True)
 
     
+
 
 
     with tab2:
