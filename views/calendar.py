@@ -51,15 +51,14 @@ def show():
             selected_rows = grid_response['selected_rows']
             
 
-            st.write("Debug: Type of selected_rows:", type(selected_rows))
-            st.write("Debug: Content of selected_rows:", selected_rows)
-
-            if selected_rows and len(selected_rows) > 0:
-                selected_seminar = selected_rows[0]  # Extract the first (and likely the only) selected row
+            if isinstance(selected_rows, pd.DataFrame) and not selected_rows.empty:
+                selected_seminar = selected_rows.to_dict('records')[0]
                 st.session_state.selected_seminar = selected_seminar
-                st.write("Debug: Selected seminar:", selected_seminar)
+            elif isinstance(selected_rows, list) and len(selected_rows) > 0:
+                selected_seminar = selected_rows[0]
+                st.session_state.selected_seminar = selected_seminar               
             else:
-                st.write("Debug: No row selected")
+                st.session_state.selected_seminar = None
 
             # Display seminar details if a seminar is selected
             if st.session_state.selected_seminar is not None:
