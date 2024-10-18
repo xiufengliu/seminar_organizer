@@ -37,14 +37,14 @@ def show():
             df['datetime'] = pd.to_datetime(df['date'].astype(str) + ' ' + df['start_time'].astype(str))
             df = df.sort_values('datetime')
 
-            # Build AgGrid table
-            gb = GridOptionsBuilder.from_dataframe(df[['date', 'start_time', 'end_time', 'topic', 'speaker_name', 'room']])
+            gb = GridOptionsBuilder.from_dataframe(df[['id', 'date', 'start_time', 'end_time', 'topic', 'speaker_name', 'room']])
             gb.configure_selection('single', use_checkbox=True, groupSelectsChildren=True, groupSelectsFiltered=True)
             gb.configure_grid_options(domLayout='normal')
             grid_options = gb.build()
 
+            # AgGrid Table
             grid_response = AgGrid(
-                df[['date', 'start_time', 'end_time', 'topic', 'speaker_name', 'room']],
+                df[['id', 'date', 'start_time', 'end_time', 'topic', 'speaker_name', 'room']],
                 gridOptions=grid_options,
                 height=300,
                 data_return_mode='AS_INPUT', 
