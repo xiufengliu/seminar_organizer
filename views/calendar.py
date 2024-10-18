@@ -106,7 +106,7 @@ def show():
                 with col1:
                     with st.expander("", expanded=True):
                         st.markdown(f"""
-                        <div style='background-color: white; padding: 10px; border-radius: 5px;'>
+                        <div style='background-color: white; padding: 0px; border-radius: 5px;'>
                             <h4 style='color: #1f77b4; margin-bottom: 10px;'>Speaker Bio</h4>  <!-- Custom styled title -->
                             {seminar['speaker_bio']}
                         </div>
@@ -115,7 +115,7 @@ def show():
                 with col2:
                     with st.expander("", expanded=True):
                         st.markdown(f"""
-                        <div style='background-color: white; padding: 10px; border-radius: 5px;'>
+                        <div style='background-color: white; padding: 0px; border-radius: 5px;'>
                             <h4 style='color: #1f77b4; margin-bottom: 10px;'>Abstract</h4>  <!-- Custom styled title -->
                             {seminar['abstract']}
                         </div>
