@@ -35,29 +35,26 @@ def show():
 
             # Build AgGrid table
             gb = GridOptionsBuilder.from_dataframe(df[['date', 'start_time', 'end_time', 'topic', 'speaker_name', 'room']])
-            gb.configure_selection('single')  # Allows single row selection
+            gb.configure_selection('single', use_checkbox=True, groupSelectsChildren=True, groupSelectsFiltered=True)
+            gb.configure_grid_options(domLayout='normal')
             grid_options = gb.build()
 
-            # Display AgGrid table
-            grid_response = AgGrid(df[['date', 'start_time', 'end_time', 'topic', 'speaker_name', 'room']],
-                                   gridOptions=grid_options,
-                                   height=300,
-                                   update_mode='MODEL_CHANGED',
-                                   fit_columns_on_grid_load=True)
+            grid_response = AgGrid(
+                df[['date', 'start_time', 'end_time', 'topic', 'speaker_name', 'room']],
+                gridOptions=grid_options,
+                height=300,
+                data_return_mode='AS_INPUT', 
+                update_mode='MODEL_CHANGED',
+                fit_columns_on_grid_load=True,
+                allow_unsafe_jscode=True
+            )
 
-            # Access the selected row safely
             selected_row = grid_response['selected_rows']
             
-                        # Check if selected_row is not None and not empty
-            st.write("Debug: Type of selected_row:", type(selected_row))
-            st.write("Debug: Content of selected_row:", selected_row)
 
             if selected_row is not None and len(selected_row) > 0:
                 selected_seminar = selected_row[0]  # Assuming AgGrid returns a list of dictionaries
                 st.session_state.selected_seminar = selected_seminar
-                st.write("Debug: Selected seminar:", selected_seminar)
-            else:
-                st.write("Debug: No row selected")
 
 
 
