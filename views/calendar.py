@@ -39,7 +39,7 @@ def show():
                 cells=dict(
                     values=[
                         df.date.dt.strftime('%Y-%m-%d'),
-                        df.start_time.astype(str) + ' - ' + df.end_time.astype(str),
+                        df.start_time.apply(lambda t: t.strftime('%H:%M')) + ' - ' + df.end_time.apply(lambda t: t.strftime('%H:%M')),  # Format time without seconds
                         df.topic,
                         df.speaker_name,
                         df.room
@@ -51,7 +51,6 @@ def show():
                 )
             )])
 
-            # Enable scrolling by setting a fixed height
             fig.update_layout(
                 title='Upcoming Seminars',
                 height=400,  # Set a fixed height for the table
@@ -59,8 +58,8 @@ def show():
                 paper_bgcolor='white'
             )
 
-            # Allow scroll bars when necessary
             st.plotly_chart(fig, use_container_width=True)
+
 
             st.markdown('-----------------')
             st.subheader("Seminar Details")
