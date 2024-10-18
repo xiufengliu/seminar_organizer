@@ -44,19 +44,22 @@ def show():
                 gridOptions=grid_options,
                 height=300,
                 data_return_mode='AS_INPUT', 
-                update_mode='MODEL_CHANGED',
+                update_mode='SELECTION_CHANGED',
                 fit_columns_on_grid_load=True,
                 allow_unsafe_jscode=True
             )
-
-            selected_row = grid_response['selected_rows']
+            selected_rows = grid_response['selected_rows']
             
 
-            if selected_row is not None and len(selected_row) > 0:
-                selected_seminar = selected_row[0]  # Assuming AgGrid returns a list of dictionaries
+            st.write("Debug: Type of selected_rows:", type(selected_rows))
+            st.write("Debug: Content of selected_rows:", selected_rows)
+
+            if selected_rows and len(selected_rows) > 0:
+                selected_seminar = selected_rows[0]  # Extract the first (and likely the only) selected row
                 st.session_state.selected_seminar = selected_seminar
-
-
+                st.write("Debug: Selected seminar:", selected_seminar)
+            else:
+                st.write("Debug: No row selected")
 
             # Display seminar details if a seminar is selected
             if st.session_state.selected_seminar is not None:
