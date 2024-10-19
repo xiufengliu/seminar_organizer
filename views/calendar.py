@@ -25,10 +25,9 @@ def validate_email(email):
     return re.match(email_regex, email) is not None
 
 
-
 def display_seminar_details(seminar):
     """Helper function to render seminar details using a container"""
-    
+
     # Format date safely
     seminar_date = pd.to_datetime(seminar.get('date', 'N/A')).strftime('%Y-%m-%d') if seminar.get('date') else 'N/A'
     seminar_start_time = seminar.get('start_time', 'N/A')
@@ -38,8 +37,10 @@ def display_seminar_details(seminar):
     with st.container():
         st.markdown(f"""
             <style>
+                /* Ensure explicit background and text color for all themes */
                 .seminar-details {{
-                    background-color: #f0f2f6;
+                    background-color: #f0f2f6; /* Light grey background */
+                    color: #000000; /* Ensure black text for contrast */
                     border-radius: 10px;
                     padding: 20px;
                     margin-bottom: 20px;
@@ -61,6 +62,7 @@ def display_seminar_details(seminar):
                 .seminar-info div {{
                     width: 45%;
                     margin-bottom: 10px;
+                    color: #000000; /* Ensure black text color */
                 }}
                 .speaker-abstract-container {{
                     display: flex;
@@ -69,6 +71,8 @@ def display_seminar_details(seminar):
                 }}
                 .speaker-abstract-container div {{
                     width: 48%;
+                    background-color: #ffffff; /* Explicit white background for speaker bio and abstract */
+                    color: #000000; /* Black text for readability */
                 }}
             </style>
             <div class="seminar-details">
@@ -86,22 +90,23 @@ def display_seminar_details(seminar):
         col1, col2 = st.columns(2)
         
         with col1:
-            with st.expander("Speaker Bio", expanded=True):
+            with st.expander("", expanded=True):
                 st.markdown(f"""
-                <div style='background-color: white; padding: 0px; border-radius: 5px;'>
+                <div style='background-color: white; padding: 0px; border-radius: 5px; color: #000000;'>
                     <h4 style='color: #1f77b4; margin-bottom: 10px;'>Speaker Bio</h4>
                     {seminar.get('speaker_bio', 'No bio available.')}
                 </div>
                 """, unsafe_allow_html=True)
 
         with col2:
-            with st.expander("Abstract", expanded=True):
+            with st.expander("", expanded=True):
                 st.markdown(f"""
-                <div style='background-color: white; padding: 0px; border-radius: 5px;'>
+                <div style='background-color: white; padding: 0px; border-radius: 5px; color: #000000;'>
                     <h4 style='color: #1f77b4; margin-bottom: 10px;'>Abstract</h4>
                     {seminar.get('abstract', 'No abstract available.')}
                 </div>
                 """, unsafe_allow_html=True)
+
 
 
 
