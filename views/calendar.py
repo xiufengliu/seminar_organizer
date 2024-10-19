@@ -123,7 +123,7 @@ def show():
             gb = GridOptionsBuilder.from_dataframe(df[['id', 'date', 'start_time', 'end_time', 'topic', 'speaker_name', 'room']])
 
             # Configure column widths
-            gb.configure_column("id", width=6)
+            gb.configure_column("id", width=4)
             gb.configure_column("date", width=35)
             gb.configure_column("start_time", width=35)
             gb.configure_column("end_time", width=35)
