@@ -31,72 +31,73 @@ def display_seminar_details(seminar):
     seminar_date = pd.to_datetime(seminar['date']).strftime('%Y-%m-%d')  # Format date to YYYY-MM-DD
     seminar_start_time = seminar['start_time']  # Already formatted in AgGrid
     seminar_end_time = seminar['end_time']
-    
-    st.markdown(f"""
-        <style>
-            .seminar-details {{
-                background-color: #f0f2f6;
-                border-radius: 10px;
-                padding: 20px;
-                margin-bottom: 20px;
-                border: 1px solid #ccc;
-            }}
-            .seminar-details h4 {{
-                color: #1f77b4;
-                margin-bottom: 15px;
-            }}
-            .seminar-details .label {{
-                font-weight: bold;
-                color: #2c3e50;
-            }}
-            .seminar-info {{
-                display: flex;
-                flex-wrap: wrap;
-                justify-content: space-between;
-            }}
-            .seminar-info div {{
-                width: 45%;
-                margin-bottom: 10px;
-            }}
-            .speaker-abstract-container {{
-                display: flex;
-                justify-content: space-between;
-                gap: 10px;
-            }}
-            .speaker-abstract-container div {{
-                width: 48%;
-            }}
-        </style>
-        <div class="seminar-details">
-            <h4>{seminar.get('topic', 'N/A')}</h4>
-            <div class="seminar-info">
-                <div><span class="label">Time:</span> {seminar_date} {seminar_start_time} - {seminar_end_time}</div>
-                <div><span class="label">Room:</span> {seminar.get('room', 'N/A')}</div>
-                <div><span class="label">Speaker:</span> {seminar.get('speaker_name', 'N/A')}</div>
-                <div><span class="label">Email:</span> {seminar.get('speaker_email', 'N/A')}</div>
+    container = st.columns(1)
+    with container:
+        st.markdown(f"""
+            <style>
+                .seminar-details {{
+                    background-color: #f0f2f6;
+                    border-radius: 10px;
+                    padding: 20px;
+                    margin-bottom: 20px;
+                    border: 1px solid #ccc;
+                }}
+                .seminar-details h4 {{
+                    color: #1f77b4;
+                    margin-bottom: 15px;
+                }}
+                .seminar-details .label {{
+                    font-weight: bold;
+                    color: #2c3e50;
+                }}
+                .seminar-info {{
+                    display: flex;
+                    flex-wrap: wrap;
+                    justify-content: space-between;
+                }}
+                .seminar-info div {{
+                    width: 45%;
+                    margin-bottom: 10px;
+                }}
+                .speaker-abstract-container {{
+                    display: flex;
+                    justify-content: space-between;
+                    gap: 10px;
+                }}
+                .speaker-abstract-container div {{
+                    width: 48%;
+                }}
+            </style>
+            <div class="seminar-details">
+                <h4>{seminar.get('topic', 'N/A')}</h4>
+                <div class="seminar-info">
+                    <div><span class="label">Time:</span> {seminar_date} {seminar_start_time} - {seminar_end_time}</div>
+                    <div><span class="label">Room:</span> {seminar.get('room', 'N/A')}</div>
+                    <div><span class="label">Speaker:</span> {seminar.get('speaker_name', 'N/A')}</div>
+                    <div><span class="label">Email:</span> {seminar.get('speaker_email', 'N/A')}</div>
+                </div>
             </div>
-        </div>
-    """, unsafe_allow_html=True)
+        """, unsafe_allow_html=True)
 
-    col1, col2 = st.columns(2)
-    
-    with col1:
-        with st.expander("", expanded=True):
-            st.markdown(f"""
-            <div style='background-color: white; padding: 0px; border-radius: 5px;'>
-                <h4 style='color: #1f77b4; margin-bottom: 10px;'>Speaker Bio</h4>
-                {seminar.get('speaker_bio', 'No bio available.')}
-            </div>
-            """, unsafe_allow_html=True)
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            with st.expander("", expanded=True):
+                st.markdown(f"""
+                <div style='background-color: white; padding: 0px; border-radius: 5px;'>
+                    <h4 style='color: #1f77b4; margin-bottom: 10px;'>Speaker Bio</h4>
+                    {seminar.get('speaker_bio', 'No bio available.')}
+                </div>
+                """, unsafe_allow_html=True)
 
-    with col2:
-        with st.expander("", expanded=True):
-            st.markdown(f"""
-            <div style='background-color: white; padding: 0px; border-radius: 5px;'>
-                <h4 style='color: #1f77b4; margin-bottom: 10px;'>Abstract</h4>
-                {seminar.get('abstract', 'No abstract available.')}
-            </div>
-            """, unsafe_allow_html=True)
+        with col2:
+            with st.expander("", expanded=True):
+                st.markdown(f"""
+                <div style='background-color: white; padding: 0px; border-radius: 5px;'>
+                    <h4 style='color: #1f77b4; margin-bottom: 10px;'>Abstract</h4>
+                    {seminar.get('abstract', 'No abstract available.')}
+                </div>
+                """, unsafe_allow_html=True)
 
 
 
