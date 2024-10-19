@@ -24,6 +24,8 @@ def validate_email(email):
     email_regex = r"^[\w\.-]+@[\w\.-]+\.\w{2,4}$"
     return re.match(email_regex, email) is not None
 
+
+
 def display_seminar_details(seminar):
     """Helper function to render seminar details using HTML"""
     seminar_date = pd.to_datetime(seminar['date']).strftime('%Y-%m-%d')  # Format date to YYYY-MM-DD
@@ -56,6 +58,14 @@ def display_seminar_details(seminar):
                 width: 45%;
                 margin-bottom: 10px;
             }}
+            .speaker-abstract-container {{
+                display: flex;
+                justify-content: space-between;
+                gap: 10px;
+            }}
+            .speaker-abstract-container div {{
+                width: 48%;
+            }}
         </style>
         <div class="seminar-details">
             <h4>{seminar.get('topic', 'N/A')}</h4>
@@ -67,6 +77,28 @@ def display_seminar_details(seminar):
             </div>
         </div>
     """, unsafe_allow_html=True)
+
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        with st.expander("Speaker Bio", expanded=True):
+            st.markdown(f"""
+            <div style='background-color: white; padding: 0px; border-radius: 5px;'>
+                <h4 style='color: #1f77b4; margin-bottom: 10px;'>Speaker Bio</h4>
+                {seminar.get('speaker_bio', 'No bio available.')}
+            </div>
+            """, unsafe_allow_html=True)
+
+    with col2:
+        with st.expander("Abstract", expanded=True):
+            st.markdown(f"""
+            <div style='background-color: white; padding: 0px; border-radius: 5px;'>
+                <h4 style='color: #1f77b4; margin-bottom: 10px;'>Abstract</h4>
+                {seminar.get('abstract', 'No abstract available.')}
+            </div>
+            """, unsafe_allow_html=True)
+
+
 
 def show():
     st.title("Seminar Calendar")
