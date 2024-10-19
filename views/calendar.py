@@ -105,6 +105,7 @@ def show():
             grid_options = gb.build()
 
             # AgGrid Table
+            # AgGrid Table
             grid_response = AgGrid(
                 df[['id', 'date', 'start_time', 'end_time', 'topic', 'speaker_name', 'room']],
                 gridOptions=grid_options,
@@ -115,15 +116,19 @@ def show():
                 allow_unsafe_jscode=True
             )
 
-            selected_rows = grid_response['selected_rows']
+            selected_rows = pd.DataFrame(grid_response['selected_rows'])  # Convert response to a DataFrame if it's not already
 
-            if selected_rows is not None and len(selected_rows) > 0:
-                selected_seminar_id = selected_rows[0]['id']
+            # Safely check if selected_rows is not empty and 'id' column exists
+            if not selected_rows.empty and 'id' in selected_rows.columns:
+                selected_seminar_id = selected_rows.iloc[0]['id']  # Access the first selected seminar's 'id'
+                
+                # Use the selected seminar ID to get full seminar details from the original DataFrame
                 selected_seminar = df[df['id'] == selected_seminar_id].iloc[0].to_dict()
                 st.session_state.selected_seminar = selected_seminar
                 logging.info(f"Seminar selected: {selected_seminar['topic']}")
             else:
                 st.session_state.selected_seminar = None
+
 
 
             if st.session_state.selected_seminar:
