@@ -78,9 +78,8 @@ class SeminarDB:
         conn.close()
 
     def connect(self):
-        if not self.conn:
-            self.conn = sqlite3.connect(self.db_file)
-            self.cursor = self.conn.cursor()
+        return sqlite3.connect(self.db_file)
+
 
     def check_time_conflict(self, date, start_time, end_time, room, exclude_id=None):
         query = '''
