@@ -184,12 +184,19 @@ def show():
             submit_button = st.form_submit_button("Submit Request")
 
         if submit_button:
+            # Check if mandatory fields are filled
             if not date or not start_time or not end_time or not room or not topic or not submitter_name or not submitter_email:
                 st.error("Please fill in all mandatory fields marked with *")
-            elif not validate_email(submitter_email):
-                st.error("Please enter a valid email address.")
+            
+            # If speaker_email is provided, validate its format
+            elif speaker_email and not validate_email(speaker_email):
+                st.error("Please enter a valid email address for the speaker.")
+            
+            # Ensure end time is after start time
             elif start_time >= end_time:
                 st.error("End time must be after start time.")
+            
+            # All validations passed, process the seminar request
             else:
                 success, message = db.create_seminar_request(
                     str(date), start_time.strftime("%H:%M:%S"), end_time.strftime("%H:%M:%S"),
@@ -198,9 +205,7 @@ def show():
                 )
                 if success:
                     st.success(message)
-                    logging.info("Seminar request submitted successfully.")
                 else:
                     st.warning(message)
-                    logging.warning("Failed to submit seminar request.")
 
     db.close()
