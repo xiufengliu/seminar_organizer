@@ -153,6 +153,9 @@ class SeminarDB:
             # Commit the transaction
             conn.commit()
             
+        # After committing, send an email notification to the seminar coordinator
+        self.send_email_to_coordinator(speaker_name, speaker_email, topic, date, start_time, end_time, room)
+
         return True, "Seminar request submitted successfully."
 
     def read_seminar_requests(self):
@@ -404,6 +407,47 @@ class SeminarDB:
             return True, f"Calendar invitations sent to {', '.join(recipient_emails)}"
         except Exception as e:
             return False, f"Error sending calendar invitations: {str(e)}"
+
+    def send_email_to_coordinator(self, speaker_name, speaker_email, topic, date, start_time, end_time, room):
+        coordinator_email = "xiuli@dtu.dk"  # Seminar coordinator's email
+        coordinator_name = "Xiaobing Zhang"  # Seminar coordinator's name
+        subject = "New Seminar Request for Approval"
+        
+        # Email body
+        body = f"""
+        Dear {coordinator_name},
+
+        A new seminar request has been submitted for your approval.
+
+        Seminar Details:
+        - Speaker: {speaker_name} ({speaker_email})
+        - Topic: {topic}
+        - Date: {date}
+        - Time: {start_time} - {end_time}
+        - Room: {room}
+
+        Please review and approve the request.
+
+        Best regards,
+        Seminar Organizer
+        """
+        
+        # Create the email
+        msg = MIMEMultipart()
+        msg['From'] = self.email_config['username']
+        msg['To'] = coordinator_email
+        msg['Subject'] = subject
+        msg.attach(MIMEText(body, 'plain'))
+
+        try:
+            # Send the email using SMTP
+            with smtplib.SMTP(self.email_config['smtp_server'], self.email_config['smtp_port']) as server:
+                server.starttls()
+                server.login(self.email_config['username'], self.email_config['app_passwd'])
+                server.send_message(msg)
+            print(f"Email sent to {coordinator_name} ({coordinator_email})")
+        except Exception as e:
+            print(f"Failed to send email: {e}")    
 
     def close(self):
         pass
