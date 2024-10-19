@@ -118,14 +118,26 @@ class SeminarDB:
         
         with self.connect() as conn:
             cursor = conn.cursor()
+            
+            # Fetch all seminars happening today or later
             cursor.execute('''
                 SELECT * FROM seminars 
                 WHERE date >= ? 
                 ORDER BY date ASC, start_time ASC
             ''', (now.strftime("%Y-%m-%d"),))
+            
+            # Fetch all results
             seminars = cursor.fetchall()
-        
-        return seminars
+            
+            # Reformat the seminars to renumber the IDs
+            renumbered_seminars = []
+            for i, seminar in enumerate(seminars, start=1):
+                # Convert the seminar to a list so we can modify it
+                seminar_list = list(seminar)
+                seminar_list[0] = i  # Replace the original ID (assuming it's the first column) with a new sequential ID
+                renumbered_seminars.append(tuple(seminar_list))  # Convert back to a tuple to match the original format
+
+        return renumbered_seminars
 
     
     def create_seminar_request(self, date, start_time, end_time, speaker_name, speaker_email, speaker_bio, topic, abstract, room, submitter_name, submitter_email):
