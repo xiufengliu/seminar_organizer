@@ -7,6 +7,7 @@ from email.mime.base import MIMEBase
 from email import encoders
 from icalendar import Calendar, Event
 import pytz
+import bcrypt
 
 class SeminarDB:
     def __init__(self, db_file='seminars.db'):
@@ -22,60 +23,65 @@ class SeminarDB:
         }
 
     def initialize_database(self):
-        conn = sqlite3.connect(self.db_file)
-        cursor = conn.cursor()
-        
-        # Create seminars table
-        cursor.execute('''
-            CREATE TABLE IF NOT EXISTS seminars (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                date TEXT NOT NULL,
-                start_time TEXT NOT NULL,
-                end_time TEXT NOT NULL,
-                speaker_name TEXT NOT NULL,
-                speaker_email TEXT NOT NULL,
-                speaker_bio TEXT,
-                topic TEXT NOT NULL,
-                abstract TEXT,
-                room TEXT NOT NULL
-            )
-        ''')
-        
-        # Create seminar requests table
-        cursor.execute('''
-            CREATE TABLE IF NOT EXISTS seminar_requests (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                date TEXT NOT NULL,
-                start_time TEXT NOT NULL,
-                end_time TEXT NOT NULL,
-                speaker_name TEXT NOT NULL,
-                speaker_email TEXT NOT NULL,
-                speaker_bio TEXT,
-                topic TEXT NOT NULL,
-                abstract TEXT,
-                room TEXT NOT NULL,
-                submitter_name TEXT NOT NULL,
-                submitter_email TEXT NOT NULL,
-                status TEXT DEFAULT 'pending'
-            )
-        ''')
-        
-        # Create admin accounts table
-        cursor.execute('''
-            CREATE TABLE IF NOT EXISTS admin_accounts (
-                username TEXT PRIMARY KEY,
-                password TEXT NOT NULL
-            )
-        ''')
-        
-        # Insert hardcoded admin account
-        cursor.execute('''
-            INSERT OR IGNORE INTO admin_accounts (username, password)
-            VALUES (?, ?)
-        ''', ('admin', 'nimda1234'))
-        
-        conn.commit()
-        conn.close()
+        # Use context manager to handle the connection
+        with self.connect() as conn:
+            cursor = conn.cursor()
+            
+            # Create seminars table
+            cursor.execute('''
+                CREATE TABLE IF NOT EXISTS seminars (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    date TEXT NOT NULL,
+                    start_time TEXT NOT NULL,
+                    end_time TEXT NOT NULL,
+                    speaker_name TEXT NOT NULL,
+                    speaker_email TEXT NOT NULL,
+                    speaker_bio TEXT,
+                    topic TEXT NOT NULL,
+                    abstract TEXT,
+                    room TEXT NOT NULL
+                )
+            ''')
+            
+            # Create seminar requests table
+            cursor.execute('''
+                CREATE TABLE IF NOT EXISTS seminar_requests (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    date TEXT NOT NULL,
+                    start_time TEXT NOT NULL,
+                    end_time TEXT NOT NULL,
+                    speaker_name TEXT NOT NULL,
+                    speaker_email TEXT NOT NULL,
+                    speaker_bio TEXT,
+                    topic TEXT NOT NULL,
+                    abstract TEXT,
+                    room TEXT NOT NULL,
+                    submitter_name TEXT NOT NULL,
+                    submitter_email TEXT NOT NULL,
+                    status TEXT DEFAULT 'pending'
+                )
+            ''')
+            
+            # Create admin accounts table
+            cursor.execute('''
+                CREATE TABLE IF NOT EXISTS admin_accounts (
+                    username TEXT PRIMARY KEY,
+                    password TEXT NOT NULL
+                )
+            ''')
+            
+            # Hash the default admin password
+            hashed_password = bcrypt.hashpw('nimda1234'.encode('utf-8'), bcrypt.gensalt())
+            
+            # Insert the hardcoded admin account if not already present
+            cursor.execute('''
+                INSERT OR IGNORE INTO admin_accounts (username, password)
+                VALUES (?, ?)
+            ''', ('admin', hashed_password.decode('utf-8')))
+            
+            # Commit the transaction
+            conn.commit()
+
 
     def connect(self):
         return sqlite3.connect(self.db_file)
@@ -313,9 +319,21 @@ class SeminarDB:
             conn.commit()
 
     def verify_admin(self, username, password):
-        self.connect()
-        self.cursor.execute('SELECT * FROM admin_accounts WHERE username = ? AND password = ?', (username, password))
-        return self.cursor.fetchone() is not None
+        # Use context manager to handle the connection
+        with self.connect() as conn:
+            cursor = conn.cursor()
+            
+            # Fetch the hashed password for the provided username
+            cursor.execute('SELECT password FROM admin_accounts WHERE username = ?', (username,))
+            result = cursor.fetchone()
+            
+            if result:
+                stored_hashed_password = result[0]
+                
+                # Verify the provided password against the stored hashed password
+                return bcrypt.checkpw(password.encode('utf-8'), stored_hashed_password.encode('utf-8'))
+            
+        return False
 
     def send_email_notification(self, submitter_name, submitter_email, topic, status):
         subject = f"Seminar Request Update: {topic}"
@@ -386,7 +404,4 @@ class SeminarDB:
             return False, f"Error sending calendar invitations: {str(e)}"
 
     def close(self):
-        if self.conn:
-            self.conn.close()
-            self.conn = None
-            self.cursor = None
+        pass
