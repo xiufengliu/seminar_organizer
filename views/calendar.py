@@ -81,7 +81,7 @@ def display_seminar_details(seminar):
     col1, col2 = st.columns(2)
     
     with col1:
-        with st.expander("Speaker Bio", expanded=True):
+        with st.expander("", expanded=True):
             st.markdown(f"""
             <div style='background-color: white; padding: 0px; border-radius: 5px;'>
                 <h4 style='color: #1f77b4; margin-bottom: 10px;'>Speaker Bio</h4>
@@ -90,7 +90,7 @@ def display_seminar_details(seminar):
             """, unsafe_allow_html=True)
 
     with col2:
-        with st.expander("Abstract", expanded=True):
+        with st.expander("", expanded=True):
             st.markdown(f"""
             <div style='background-color: white; padding: 0px; border-radius: 5px;'>
                 <h4 style='color: #1f77b4; margin-bottom: 10px;'>Abstract</h4>
