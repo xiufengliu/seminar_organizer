@@ -95,7 +95,7 @@ def show():
             gb.configure_column("date", width=35)
             gb.configure_column("start_time", width=35)
             gb.configure_column("end_time", width=35)
-            gb.configure_column("topic", width=250, wrapText=True, autoHeight=True)
+            gb.configure_column("topic", width=200, wrapText=True, autoHeight=True)
             gb.configure_column("speaker_name", width=80)
             gb.configure_column("room", width=60)
 
