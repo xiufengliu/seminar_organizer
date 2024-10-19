@@ -409,8 +409,8 @@ class SeminarDB:
             return False, f"Error sending calendar invitations: {str(e)}"
 
     def send_email_to_coordinator(self, speaker_name, speaker_email, topic, date, start_time, end_time, room):
-        coordinator_email = "xiuli@dtu.dk"  # Seminar coordinator's email
-        coordinator_name = "Xiaobing Zhang"  # Seminar coordinator's name
+        coordinator_email = "xiazhan@dtu.dk"  # Seminar coordinator's email
+        coordinator_name = "Xiaobing"  # Seminar coordinator's name
         subject = "New Seminar Request for Approval"
         
         # Email body
