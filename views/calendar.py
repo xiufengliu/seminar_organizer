@@ -117,13 +117,14 @@ def show():
 
             selected_rows = grid_response['selected_rows']
 
-            if selected_rows and len(selected_rows) > 0:
+            if selected_rows is not None and len(selected_rows) > 0:
                 selected_seminar_id = selected_rows[0]['id']
                 selected_seminar = df[df['id'] == selected_seminar_id].iloc[0].to_dict()
                 st.session_state.selected_seminar = selected_seminar
                 logging.info(f"Seminar selected: {selected_seminar['topic']}")
             else:
                 st.session_state.selected_seminar = None
+
 
             if st.session_state.selected_seminar:
                 display_seminar_details(st.session_state.selected_seminar)
