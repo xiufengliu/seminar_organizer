@@ -27,12 +27,15 @@ def validate_email(email):
 
 
 def display_seminar_details(seminar):
-    """Helper function to render seminar details using HTML"""
-    seminar_date = pd.to_datetime(seminar['date']).strftime('%Y-%m-%d')  # Format date to YYYY-MM-DD
-    seminar_start_time = seminar['start_time']  # Already formatted in AgGrid
-    seminar_end_time = seminar['end_time']
-    container = st.columns(1)
-    with container:
+    """Helper function to render seminar details using a container"""
+    
+    # Format date safely
+    seminar_date = pd.to_datetime(seminar.get('date', 'N/A')).strftime('%Y-%m-%d') if seminar.get('date') else 'N/A'
+    seminar_start_time = seminar.get('start_time', 'N/A')
+    seminar_end_time = seminar.get('end_time', 'N/A')
+    
+    # Use st.container to group the details inside a visual frame
+    with st.container():
         st.markdown(f"""
             <style>
                 .seminar-details {{
@@ -78,11 +81,12 @@ def display_seminar_details(seminar):
                 </div>
             </div>
         """, unsafe_allow_html=True)
-
+        
+        # Two-column layout for Speaker Bio and Abstract inside the container
         col1, col2 = st.columns(2)
         
         with col1:
-            with st.expander("", expanded=True):
+            with st.expander("Speaker Bio", expanded=True):
                 st.markdown(f"""
                 <div style='background-color: white; padding: 0px; border-radius: 5px;'>
                     <h4 style='color: #1f77b4; margin-bottom: 10px;'>Speaker Bio</h4>
@@ -91,7 +95,7 @@ def display_seminar_details(seminar):
                 """, unsafe_allow_html=True)
 
         with col2:
-            with st.expander("", expanded=True):
+            with st.expander("Abstract", expanded=True):
                 st.markdown(f"""
                 <div style='background-color: white; padding: 0px; border-radius: 5px;'>
                     <h4 style='color: #1f77b4; margin-bottom: 10px;'>Abstract</h4>
