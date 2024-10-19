@@ -318,6 +318,7 @@ class SeminarDB:
             cursor.execute('DELETE FROM seminar_requests WHERE id = ?', (request_id,))
             conn.commit()
 
+
     def verify_admin(self, username, password):
         # Use context manager to handle the connection
         with self.connect() as conn:
@@ -334,6 +335,7 @@ class SeminarDB:
                 return bcrypt.checkpw(password.encode('utf-8'), stored_hashed_password.encode('utf-8'))
             
         return False
+
 
     def send_email_notification(self, submitter_name, submitter_email, topic, status):
         subject = f"Seminar Request Update: {topic}"
