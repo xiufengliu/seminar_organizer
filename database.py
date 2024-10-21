@@ -373,52 +373,56 @@ class SeminarDB:
 
 
     def send_calendar_invitation(self, seminar_id, recipient_emails):
-        self.connect()
-        self.cursor.execute('SELECT * FROM seminars WHERE id = ?', (seminar_id,))
-        seminar = self.cursor.fetchone()
+        # Open a connection and use a cursor to retrieve the seminar data
+        with self.connect() as conn:
+            cursor = conn.cursor()
+            cursor.execute('SELECT * FROM seminars WHERE id = ?', (seminar_id,))
+            seminar = cursor.fetchone()
 
-        if not seminar:
-            return False, "Seminar not found."
+            if not seminar:
+                return False, "Seminar not found."
 
-        date, start_time, end_time, speaker_name, speaker_email, speaker_bio, topic, abstract, room = seminar[1:10]
+            # Extract relevant seminar details
+            date, start_time, end_time, speaker_name, speaker_email, speaker_bio, topic, abstract, room = seminar[1:10]
 
-        # Create the calendar event
-        cal = Calendar()
-        event = Event()
-        event.add('summary', topic)
-        event.add('description', abstract)
-        event.add('dtstart', datetime.strptime(f"{date} {start_time}", "%Y-%m-%d %H:%M:%S").replace(tzinfo=pytz.UTC))
-        event.add('dtend', datetime.strptime(f"{date} {end_time}", "%Y-%m-%d %H:%M:%S").replace(tzinfo=pytz.UTC))
-        event.add('location', room)
-        event.add('organizer', self.email_config['username'])
-        cal.add_component(event)
+            # Create the calendar event
+            cal = Calendar()
+            event = Event()
+            event.add('summary', topic)
+            event.add('description', abstract)
+            event.add('dtstart', datetime.strptime(f"{date} {start_time}", "%Y-%m-%d %H:%M:%S").replace(tzinfo=pytz.UTC))
+            event.add('dtend', datetime.strptime(f"{date} {end_time}", "%Y-%m-%d %H:%M:%S").replace(tzinfo=pytz.UTC))
+            event.add('location', room)
+            event.add('organizer', self.email_config['username'])
+            cal.add_component(event)
 
-        # Create the email message
-        msg = MIMEMultipart()
-        msg['Subject'] = f"Invitation: {topic}"
-        msg['From'] = self.email_config['username']
-        msg['To'] = ', '.join(recipient_emails)
+            # Create the email message
+            msg = MIMEMultipart()
+            msg['Subject'] = f"Invitation: {topic}"
+            msg['From'] = self.email_config['username']
+            msg['To'] = ', '.join(recipient_emails)
 
-        # Attach the calendar event
-        filename = "invitation.ics"
-        part = MIMEBase('text', 'calendar', method='REQUEST', name=filename)
-        part.set_payload(cal.to_ical())
-        encoders.encode_base64(part)
-        part.add_header('Content-Disposition', f'attachment; filename="{filename}"')
-        msg.attach(part)
+            # Attach the calendar event
+            filename = "invitation.ics"
+            part = MIMEBase('text', 'calendar', method='REQUEST', name=filename)
+            part.set_payload(cal.to_ical())
+            encoders.encode_base64(part)
+            part.add_header('Content-Disposition', f'attachment; filename="{filename}"')
+            msg.attach(part)
 
-        # Add email body
-        body = f"You are invited to the following seminar:\n\nTopic: {topic}\nSpeaker: {speaker_name}\nDate: {date}\nTime: {start_time} - {end_time}\nRoom: {room}\n\nPlease find the calendar invitation attached."
-        msg.attach(MIMEText(body, 'plain'))
+            # Add email body
+            body = f"You are invited to the following seminar:\n\nTopic: {topic}\nSpeaker: {speaker_name}\nDate: {date}\nTime: {start_time} - {end_time}\nRoom: {room}\n\nPlease find the calendar invitation attached."
+            msg.attach(MIMEText(body, 'plain'))
 
-        try:
-            with smtplib.SMTP(self.email_config['smtp_server'], self.email_config['smtp_port']) as server:
-                server.starttls()
-                server.login(self.email_config['username'], self.email_config['app_passwd'])
-                server.send_message(msg)
-            return True, f"Calendar invitations sent to {', '.join(recipient_emails)}"
-        except Exception as e:
-            return False, f"Error sending calendar invitations: {str(e)}"
+            try:
+                with smtplib.SMTP(self.email_config['smtp_server'], self.email_config['smtp_port']) as server:
+                    server.starttls()
+                    server.login(self.email_config['username'], self.email_config['app_passwd'])
+                    server.send_message(msg)
+                return True, f"Calendar invitations sent to {', '.join(recipient_emails)}"
+            except Exception as e:
+                return False, f"Error sending calendar invitations: {str(e)}"
+
 
     def send_email_to_coordinator(self, speaker_name, speaker_email, topic, date, start_time, end_time, room):
         coordinator_email = "xiazhan@dtu.dk"  # Seminar coordinator's email
