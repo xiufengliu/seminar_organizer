@@ -387,6 +387,9 @@ class SeminarDB:
 
             # Create the calendar event
             cal = Calendar()
+            cal.add('prodid', '-//My Seminar Application//mxm.dk//')
+            cal.add('version', '2.0')
+
             event = Event()
             event.add('summary', topic)
             event.add('description', abstract)
@@ -394,6 +397,10 @@ class SeminarDB:
             event.add('dtend', datetime.strptime(f"{date} {end_time}", "%Y-%m-%d %H:%M:%S").replace(tzinfo=pytz.UTC))
             event.add('location', room)
             event.add('organizer', self.email_config['username'])
+            event.add('uid', f'{seminar_id}@myseminarapp.com')  # Unique event ID
+            event.add('priority', 5)
+
+            # Add the event to the calendar
             cal.add_component(event)
 
             # Create the email message
@@ -411,7 +418,17 @@ class SeminarDB:
             msg.attach(part)
 
             # Add email body
-            body = f"You are invited to the following seminar:\n\nTopic: {topic}\nSpeaker: {speaker_name}\nDate: {date}\nTime: {start_time} - {end_time}\nRoom: {room}\n\nPlease find the calendar invitation attached."
+            body = f"""
+            You are invited to the following seminar:
+
+            Topic: {topic}
+            Speaker: {speaker_name}
+            Date: {date}
+            Time: {start_time} - {end_time}
+            Room: {room}
+
+            Please find the calendar invitation attached.
+            """
             msg.attach(MIMEText(body, 'plain'))
 
             try:
