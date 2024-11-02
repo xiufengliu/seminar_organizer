@@ -149,6 +149,38 @@ def display_seminars_table(seminars, title):
     if st.session_state.selected_seminar:
         display_seminar_details(st.session_state.selected_seminar)
 
+
+def validate_and_submit_request(db, date, start_time, end_time, room, speaker_name, speaker_email, speaker_bio, topic, abstract, submitter_name, submitter_email):
+    # Check if mandatory fields are filled
+    if not date or not start_time or not end_time or not room or not topic or not submitter_name or not submitter_email:
+        st.error("Please fill in all mandatory fields marked with *")
+        return
+
+    # Validate speaker email if provided
+    if speaker_email and not validate_email(speaker_email):
+        st.error("Please enter a valid email address for the speaker.")
+        return
+
+    # Ensure end time is after start time
+    if start_time >= end_time:
+        st.error("End time must be after start time.")
+        return
+
+    # All validations passed, attempt to create seminar request
+    success, message = db.create_seminar_request(
+        str(date), start_time.strftime("%H:%M:%S"), end_time.strftime("%H:%M:%S"),
+        speaker_name, speaker_email, speaker_bio, topic, abstract, room,
+        submitter_name, submitter_email
+    )
+
+    # Display success or warning message based on the outcome
+    if success:
+        st.success(message)
+    else:
+        st.warning(message)
+
+
+
 def show():
     st.title("Seminar Calendar")
     db = SeminarDB()
