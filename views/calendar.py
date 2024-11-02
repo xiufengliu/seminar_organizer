@@ -24,10 +24,8 @@ def validate_email(email):
     email_regex = r"^[\w\.-]+@[\w\.-]+\.\w{2,4}$"
     return re.match(email_regex, email) is not None
 
-
 def display_seminar_details(seminar):
     """Helper function to render seminar details using a container"""
-
     # Format date safely
     seminar_date = pd.to_datetime(seminar.get('date', 'N/A')).strftime('%Y-%m-%d') if seminar.get('date') else 'N/A'
     seminar_start_time = seminar.get('start_time', 'N/A')
@@ -37,10 +35,9 @@ def display_seminar_details(seminar):
     with st.container():
         st.markdown(f"""
             <style>
-                /* Ensure explicit background and text color for all themes */
                 .seminar-details {{
-                    background-color: #f0f2f6; /* Light grey background */
-                    color: #000000; /* Ensure black text for contrast */
+                    background-color: #f0f2f6;
+                    color: #000000;
                     border-radius: 10px;
                     padding: 20px;
                     margin-bottom: 20px;
@@ -62,17 +59,7 @@ def display_seminar_details(seminar):
                 .seminar-info div {{
                     width: 45%;
                     margin-bottom: 10px;
-                    color: #000000; /* Ensure black text color */
-                }}
-                .speaker-abstract-container {{
-                    display: flex;
-                    justify-content: space-between;
-                    gap: 10px;
-                }}
-                .speaker-abstract-container div {{
-                    width: 48%;
-                    background-color: #ffffff; /* Explicit white background for speaker bio and abstract */
-                    color: #000000; /* Black text for readability */
+                    color: #000000;
                 }}
             </style>
             <div class="seminar-details">
@@ -85,137 +72,95 @@ def display_seminar_details(seminar):
                 </div>
             </div>
         """, unsafe_allow_html=True)
-        
-        # Two-column layout for Speaker Bio and Abstract inside the container
-        col1, col2 = st.columns(2)
-        
-        with col1:
-            with st.expander("", expanded=True):
-                st.markdown(f"""
-                <div style='background-color: white; padding: 0px; border-radius: 5px; color: #000000;'>
-                    <h4 style='color: #1f77b4; margin-bottom: 10px;'>Speaker Bio</h4>
-                    {seminar.get('speaker_bio', 'No bio available.')}
-                </div>
-                """, unsafe_allow_html=True)
 
-        with col2:
-            with st.expander("", expanded=True):
-                st.markdown(f"""
-                <div style='background-color: white; padding: 0px; border-radius: 5px; color: #000000;'>
-                    <h4 style='color: #1f77b4; margin-bottom: 10px;'>Abstract</h4>
-                    {seminar.get('abstract', 'No abstract available.')}
-                </div>
-                """, unsafe_allow_html=True)
+def display_seminars_table(seminars, title):
+    """Helper function to display seminars table using AgGrid."""
+    df = pd.DataFrame(seminars, columns=['id', 'date', 'start_time', 'end_time', 'speaker_name', 'speaker_email', 'speaker_bio', 'topic', 'abstract', 'room'])
+    df['date'] = pd.to_datetime(df['date']).dt.strftime('%Y-%m-%d')
+    df['start_time'] = pd.to_datetime(df['start_time'], format='%H:%M:%S').dt.strftime('%H:%M')
+    df['end_time'] = pd.to_datetime(df['end_time'], format='%H:%M:%S').dt.strftime('%H:%M')
+    df['datetime'] = pd.to_datetime(df['date'].astype(str) + ' ' + df['start_time'].astype(str))
+    df = df.sort_values('datetime')
 
+    gb = GridOptionsBuilder.from_dataframe(df[['id', 'date', 'start_time', 'end_time', 'topic', 'speaker_name', 'room']])
+    gb.configure_column("id", width=4)
+    gb.configure_column("date", width=35)
+    gb.configure_column("start_time", width=35)
+    gb.configure_column("end_time", width=35)
+    gb.configure_column("topic", width=200, wrapText=True, autoHeight=True)
+    gb.configure_column("speaker_name", width=80)
+    gb.configure_column("room", width=60)
+    gb.configure_selection('single', use_checkbox=False, groupSelectsChildren=True, groupSelectsFiltered=True)
+    grid_options = gb.build()
 
+    grid_response = AgGrid(
+        df[['id', 'date', 'start_time', 'end_time', 'topic', 'speaker_name', 'room']],
+        gridOptions=grid_options,
+        height=300,
+        data_return_mode='AS_INPUT',
+        update_mode='SELECTION_CHANGED',
+        fit_columns_on_grid_load=True,
+        allow_unsafe_jscode=True
+    )
 
+    selected_rows = pd.DataFrame(grid_response['selected_rows'])
+    if not selected_rows.empty and 'id' in selected_rows.columns:
+        selected_seminar_id = selected_rows.iloc[0]['id']
+        selected_seminar = df[df['id'] == selected_seminar_id].iloc[0].to_dict()
+        st.session_state.selected_seminar = selected_seminar
+        logging.info(f"{title} selected: {selected_seminar['topic']}")
+    else:
+        st.session_state.selected_seminar = None
+
+    if st.session_state.selected_seminar:
+        display_seminar_details(st.session_state.selected_seminar)
 
 def show():
     st.title("Seminar Calendar")
     db = SeminarDB()
 
-    tab1, tab2 = st.tabs(["Seminar Schedule", "Request Seminar"])
+    tab1, tab2, tab3 = st.tabs(["Upcoming Seminar", "Past Seminar", "Request Seminar"])
 
+    # Upcoming Seminars Tab
     with tab1:
         seminars = db.fetch_future_seminars()
-        
         if not seminars:
             st.warning("No upcoming seminars found.")
         else:
-            df = pd.DataFrame(seminars, columns=['id', 'date', 'start_time', 'end_time', 'speaker_name', 'speaker_email', 'speaker_bio', 'topic', 'abstract', 'room'])
-            df['date'] = pd.to_datetime(df['date']).dt.strftime('%Y-%m-%d')  # Show only date in format: DD/MM/YYYY
-            df['start_time'] = pd.to_datetime(df['start_time'], format='%H:%M:%S').dt.strftime('%H:%M')  # Strip seconds
-            df['end_time'] = pd.to_datetime(df['end_time'], format='%H:%M:%S').dt.strftime('%H:%M')  # Strip seconds
-            df['datetime'] = pd.to_datetime(df['date'].astype(str) + ' ' + df['start_time'].astype(str))
-            df = df.sort_values('datetime')
+            display_seminars_table(seminars, "Upcoming Seminar")
 
-            # Ensure 'id' is included in the AgGrid table for selection purposes
-            gb = GridOptionsBuilder.from_dataframe(df[['id', 'date', 'start_time', 'end_time', 'topic', 'speaker_name', 'room']])
-
-            # Configure column widths
-            gb.configure_column("id", width=4)
-            gb.configure_column("date", width=35)
-            gb.configure_column("start_time", width=35)
-            gb.configure_column("end_time", width=35)
-            gb.configure_column("topic", width=200, wrapText=True, autoHeight=True)
-            gb.configure_column("speaker_name", width=80)
-            gb.configure_column("room", width=60)
-
-            # Build the grid options
-            gb.configure_selection('single', use_checkbox=False, groupSelectsChildren=True, groupSelectsFiltered=True)
-            gb.configure_grid_options(domLayout='normal')
-            grid_options = gb.build()
-
-            # AgGrid Table
-            # AgGrid Table
-            grid_response = AgGrid(
-                df[['id', 'date', 'start_time', 'end_time', 'topic', 'speaker_name', 'room']],
-                gridOptions=grid_options,
-                height=300,
-                data_return_mode='AS_INPUT',
-                update_mode='SELECTION_CHANGED',
-                fit_columns_on_grid_load=True,
-                allow_unsafe_jscode=True
-            )
-
-            selected_rows = pd.DataFrame(grid_response['selected_rows'])  # Convert response to a DataFrame if it's not already
-
-            # Safely check if selected_rows is not empty and 'id' column exists
-            if not selected_rows.empty and 'id' in selected_rows.columns:
-                selected_seminar_id = selected_rows.iloc[0]['id']  # Access the first selected seminar's 'id'
-                
-                # Use the selected seminar ID to get full seminar details from the original DataFrame
-                selected_seminar = df[df['id'] == selected_seminar_id].iloc[0].to_dict()
-                st.session_state.selected_seminar = selected_seminar
-                logging.info(f"Seminar selected: {selected_seminar['topic']}")
-            else:
-                st.session_state.selected_seminar = None
-
-
-
-            if st.session_state.selected_seminar:
-                display_seminar_details(st.session_state.selected_seminar)
-
+    # Past Seminars Tab
     with tab2:
+        past_seminars = db.fetch_past_seminars()
+        if not past_seminars:
+            st.warning("No past seminars found.")
+        else:
+            display_seminars_table(past_seminars, "Past Seminar")
+    
+    # Request Seminar Tab
+    with tab3:
         st.subheader("Request a Seminar")
         with st.form("request_seminar_form"):
-            date = st.date_input("Seminar Date *")  # Seminar date is mandatory
-            start_time = time_picker("Start Time *", default_time=time(12, 0))  # Start time is mandatory
-            end_time = time_picker("End Time *", default_time=time(13, 0))  # End time is mandatory
-            room = st.text_input("Preferred Meeting Room *")  # Mandatory field
-            speaker_name = st.text_input("Speaker Name")  # Optional
-            speaker_email = st.text_input("Speaker Email")  # Optional
-            speaker_bio = st.text_area("Speaker Bio")  # Optional
-            topic = st.text_input("Topic *")  # Mandatory field
+            date = st.date_input("Seminar Date *")
+            start_time = time_picker("Start Time *", default_time=time(12, 0))
+            end_time = time_picker("End Time *", default_time=time(13, 0))
+            room = st.text_input("Preferred Meeting Room *")
+            speaker_name = st.text_input("Speaker Name")
+            speaker_email = st.text_input("Speaker Email")
+            speaker_bio = st.text_area("Speaker Bio")
+            topic = st.text_input("Topic *")
             abstract = st.text_area("Abstract")
-            submitter_name = st.text_input("Your Name *")  # Mandatory field
-            submitter_email = st.text_input("Your Email *")  # Mandatory field
-            
+            submitter_name = st.text_input("Your Name *")
+            submitter_email = st.text_input("Your Email *")
+
             submit_button = st.form_submit_button("Submit Request")
 
         if submit_button:
-            # Check if mandatory fields are filled
-            if not date or not start_time or not end_time or not room or not topic or not submitter_name or not submitter_email:
-                st.error("Please fill in all mandatory fields marked with *")
-            
-            # If speaker_email is provided, validate its format
-            elif speaker_email and not validate_email(speaker_email):
-                st.error("Please enter a valid email address for the speaker.")
-            
-            # Ensure end time is after start time
-            elif start_time >= end_time:
-                st.error("End time must be after start time.")
-            
-            # All validations passed, process the seminar request
-            else:
-                success, message = db.create_seminar_request(
-                    str(date), start_time.strftime("%H:%M:%S"), end_time.strftime("%H:%M:%S"),
-                    speaker_name, speaker_email, speaker_bio, topic, abstract, room,
-                    submitter_name, submitter_email
-                )
-                if success:
-                    st.success(message)
-                else:
-                    st.warning(message)
+            validate_and_submit_request(
+                db, date, start_time, end_time, room, speaker_name, speaker_email,
+                speaker_bio, topic, abstract, submitter_name, submitter_email
+            )
+
+
 
     db.close()
