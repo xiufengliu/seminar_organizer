@@ -151,34 +151,22 @@ def display_seminars_table(seminars, title):
 
 
 def validate_and_submit_request(db, date, start_time, end_time, room, speaker_name, speaker_email, speaker_bio, topic, abstract, submitter_name, submitter_email):
-    # Check if mandatory fields are filled
     if not date or not start_time or not end_time or not room or not topic or not submitter_name or not submitter_email:
         st.error("Please fill in all mandatory fields marked with *")
-        return
-
-    # Validate speaker email if provided
-    if speaker_email and not validate_email(speaker_email):
+    elif speaker_email and not validate_email(speaker_email):
         st.error("Please enter a valid email address for the speaker.")
-        return
-
-    # Ensure end time is after start time
-    if start_time >= end_time:
+    elif start_time >= end_time:
         st.error("End time must be after start time.")
-        return
-
-    # All validations passed, attempt to create seminar request
-    success, message = db.create_seminar_request(
-        str(date), start_time.strftime("%H:%M:%S"), end_time.strftime("%H:%M:%S"),
-        speaker_name, speaker_email, speaker_bio, topic, abstract, room,
-        submitter_name, submitter_email
-    )
-
-    # Display success or warning message based on the outcome
-    if success:
-        st.success(message)
     else:
-        st.warning(message)
-
+        success, message = db.create_seminar_request(
+            str(date), start_time.strftime("%H:%M:%S"), end_time.strftime("%H:%M:%S"),
+            speaker_name, speaker_email, speaker_bio, topic, abstract, room,
+            submitter_name, submitter_email
+        )
+        if success:
+            st.success(message)
+        else:
+            st.warning(message)
 
 
 def show():
@@ -207,18 +195,18 @@ def show():
     with tab3:
         st.subheader("Request a Seminar")
         with st.form("request_seminar_form"):
-            date = st.date_input("Seminar Date *")
-            start_time = time_picker("Start Time *", default_time=time(12, 0))
-            end_time = time_picker("End Time *", default_time=time(13, 0))
-            room = st.text_input("Preferred Meeting Room *")
-            speaker_name = st.text_input("Speaker Name")
-            speaker_email = st.text_input("Speaker Email")
-            speaker_bio = st.text_area("Speaker Bio")
-            topic = st.text_input("Topic *")
+            date = st.date_input("Seminar Date *")  # Seminar date is mandatory
+            start_time = time_picker("Start Time *", default_time=time(12, 0))  # Start time is mandatory
+            end_time = time_picker("End Time *", default_time=time(13, 0))  # End time is mandatory
+            room = st.text_input("Preferred Meeting Room *")  # Mandatory field
+            speaker_name = st.text_input("Speaker Name")  # Optional
+            speaker_email = st.text_input("Speaker Email")  # Optional
+            speaker_bio = st.text_area("Speaker Bio")  # Optional
+            topic = st.text_input("Topic *")  # Mandatory field
             abstract = st.text_area("Abstract")
-            submitter_name = st.text_input("Your Name *")
-            submitter_email = st.text_input("Your Email *")
-
+            submitter_name = st.text_input("Your Name *")  # Mandatory field
+            submitter_email = st.text_input("Your Email *")  # Mandatory field
+            
             submit_button = st.form_submit_button("Submit Request")
 
         if submit_button:
@@ -226,7 +214,5 @@ def show():
                 db, date, start_time, end_time, room, speaker_name, speaker_email,
                 speaker_bio, topic, abstract, submitter_name, submitter_email
             )
-
-
 
     db.close()
