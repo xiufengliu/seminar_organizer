@@ -1,8 +1,17 @@
 import streamlit as st
 import pandas as pd
-import plotly.graph_objects as go
+from st_aggrid import AgGrid, GridOptionsBuilder
 from database import SeminarDB
 from datetime import datetime, time
+import logging
+import re
+
+# Set up logging
+logging.basicConfig(level=logging.INFO)
+
+# Initialize session state for selected seminar
+if 'selected_seminar' not in st.session_state:
+    st.session_state.selected_seminar = None
 
 def time_picker(label, default_time=time(9, 0)):
     col1, col2 = st.columns(2)
@@ -10,138 +19,287 @@ def time_picker(label, default_time=time(9, 0)):
     minute = col2.number_input(f"{label} (Minute)", min_value=0, max_value=59, value=default_time.minute, step=5)
     return time(hour, minute)
 
+def validate_email(email):
+    # Simple regex for validating email format
+    email_regex = r"^[\w\.-]+@[\w\.-]+\.\w{2,4}$"
+    return re.match(email_regex, email) is not None
+
+
+def display_seminar_details(seminar):
+    """Helper function to render seminar details using a container"""
+
+    # Format date safely
+    seminar_date = pd.to_datetime(seminar.get('date', 'N/A')).strftime('%Y-%m-%d') if seminar.get('date') else 'N/A'
+    seminar_start_time = seminar.get('start_time', 'N/A')
+    seminar_end_time = seminar.get('end_time', 'N/A')
+    
+    # Use st.container to group the details inside a visual frame
+    with st.container():
+        st.markdown(f"""
+            <style>
+                /* Ensure explicit background and text color for all themes */
+                .seminar-details {{
+                    background-color: #f0f2f6; /* Light grey background */
+                    color: #000000; /* Ensure black text for contrast */
+                    border-radius: 10px;
+                    padding: 20px;
+                    margin-bottom: 20px;
+                    border: 1px solid #ccc;
+                }}
+                .seminar-details h4 {{
+                    color: #1f77b4;
+                    margin-bottom: 15px;
+                }}
+                .seminar-details .label {{
+                    font-weight: bold;
+                    color: #2c3e50;
+                }}
+                .seminar-info {{
+                    display: flex;
+                    flex-wrap: wrap;
+                    justify-content: space-between;
+                }}
+                .seminar-info div {{
+                    width: 45%;
+                    margin-bottom: 10px;
+                    color: #000000; /* Ensure black text color */
+                }}
+                .speaker-abstract-container {{
+                    display: flex;
+                    justify-content: space-between;
+                    gap: 10px;
+                }}
+                .speaker-abstract-container div {{
+                    width: 48%;
+                    background-color: #ffffff; /* Explicit white background for speaker bio and abstract */
+                    color: #000000; /* Black text for readability */
+                }}
+            </style>
+            <div class="seminar-details">
+                <h4>{seminar.get('topic', 'N/A')}</h4>
+                <div class="seminar-info">
+                    <div><span class="label">Time:</span> {seminar_date} {seminar_start_time} - {seminar_end_time}</div>
+                    <div><span class="label">Room:</span> {seminar.get('room', 'N/A')}</div>
+                    <div><span class="label">Speaker:</span> {seminar.get('speaker_name', 'N/A')}</div>
+                    <div><span class="label">Email:</span> {seminar.get('speaker_email', 'N/A')}</div>
+                </div>
+            </div>
+        """, unsafe_allow_html=True)
+        
+        # Two-column layout for Speaker Bio and Abstract inside the container
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            with st.expander("", expanded=True):
+                st.markdown(f"""
+                <div style='background-color: white; padding: 0px; border-radius: 5px; color: #000000;'>
+                    <h4 style='color: #1f77b4; margin-bottom: 10px;'>Speaker Bio</h4>
+                    {seminar.get('speaker_bio', 'No bio available.')}
+                </div>
+                """, unsafe_allow_html=True)
+
+        with col2:
+            with st.expander("", expanded=True):
+                st.markdown(f"""
+                <div style='background-color: white; padding: 0px; border-radius: 5px; color: #000000;'>
+                    <h4 style='color: #1f77b4; margin-bottom: 10px;'>Abstract</h4>
+                    {seminar.get('abstract', 'No abstract available.')}
+                </div>
+                """, unsafe_allow_html=True)
+
+def display_seminars_table_old(seminars, title):
+    """Helper function to display seminars table using AgGrid."""
+    df = pd.DataFrame(seminars, columns=['id', 'date', 'start_time', 'end_time', 'speaker_name', 'speaker_email', 'speaker_bio', 'topic', 'abstract', 'room'])
+    df['date'] = pd.to_datetime(df['date']).dt.strftime('%Y-%m-%d')
+    df['start_time'] = pd.to_datetime(df['start_time'], format='%H:%M:%S').dt.strftime('%H:%M')
+    df['end_time'] = pd.to_datetime(df['end_time'], format='%H:%M:%S').dt.strftime('%H:%M')
+    df['datetime'] = pd.to_datetime(df['date'].astype(str) + ' ' + df['start_time'].astype(str))
+    df = df.sort_values('datetime')
+
+    gb = GridOptionsBuilder.from_dataframe(df[['id', 'date', 'start_time', 'end_time', 'topic', 'speaker_name', 'room']])
+    gb.configure_column("id", width=4)
+    gb.configure_column("date", width=35)
+    gb.configure_column("start_time", width=35)
+    gb.configure_column("end_time", width=35)
+    gb.configure_column("topic", width=200, wrapText=True, autoHeight=True)
+    gb.configure_column("speaker_name", width=80)
+    gb.configure_column("room", width=60)
+    gb.configure_selection('single', use_checkbox=False, groupSelectsChildren=True, groupSelectsFiltered=True)
+    grid_options = gb.build()
+
+    grid_response = AgGrid(
+        df[['id', 'date', 'start_time', 'end_time', 'topic', 'speaker_name', 'room']],
+        gridOptions=grid_options,
+        height=300,
+        data_return_mode='AS_INPUT',
+        update_mode='SELECTION_CHANGED',
+        fit_columns_on_grid_load=True,
+        allow_unsafe_jscode=True
+    )
+
+    selected_rows = pd.DataFrame(grid_response['selected_rows'])
+    if not selected_rows.empty and 'id' in selected_rows.columns:
+        selected_seminar_id = selected_rows.iloc[0]['id']
+        selected_seminar = df[df['id'] == selected_seminar_id].iloc[0].to_dict()
+        st.session_state.selected_seminar = selected_seminar
+        logging.info(f"{title} selected: {selected_seminar['topic']}")
+    else:
+        st.session_state.selected_seminar = None
+
+    if st.session_state.selected_seminar:
+        display_seminar_details(st.session_state.selected_seminar)
+
+
+def display_seminars_table(seminars, title):
+    # Create a DataFrame from the seminar data
+    df = pd.DataFrame(seminars)
+    
+    # Convert date strings to datetime if needed
+    if 'date' in df.columns:
+        df['date'] = pd.to_datetime(df['date']).dt.strftime('%Y-%m-%d')
+    
+    # Ensure all columns exist and handle missing data
+    required_columns = ['id', 'date', 'start_time', 'end_time', 'topic', 'speaker_name', 'room']
+    for col in required_columns:
+        if col not in df.columns:
+            df[col] = ''
+
+    # Create a GridOptionsBuilder object
+    gb = GridOptionsBuilder.from_dataframe(df[required_columns])
+
+    # Configure default column properties
+    gb.configure_default_column(
+        resizable=True,
+        filterable=True,
+        sorteable=True,
+        editable=False
+    )
+
+    # Configure individual columns with improved settings
+    gb.configure_column("id", 
+                       width=50,
+                       headerName="ID")
+    
+    gb.configure_column("date", 
+                       width=100,
+                       headerName="Date")
+    
+    gb.configure_column("start_time", 
+                       width=100,
+                       headerName="Start Time")
+    
+    gb.configure_column("end_time", 
+                       width=100,
+                       headerName="End Time")
+    
+    gb.configure_column("topic", 
+                       minWidth=300,
+                       flex=2,
+                       wrapText=True,
+                       autoHeight=True,
+                       headerName="Topic")
+    
+    gb.configure_column("speaker_name", 
+                       width=150,
+                       flex=1,
+                       headerName="Speaker")
+    
+    gb.configure_column("room", 
+                       width=100,
+                       flex=1,
+                       headerName="Room")
+
+    # Configure grid options for better display
+    gb.configure_grid_options(
+        domLayout='autoHeight',
+        enableCellTextSelection=True,
+        ensureDomOrder=True,
+        suppressColumnVirtualisation=True,
+        suppressRowVirtualisation=True,
+        suppressHorizontalScroll=False,
+        rowHeight=50
+    )
+
+    # Configure selection type
+    gb.configure_selection(
+        selection_mode='single',
+        use_checkbox=False
+    )
+
+    # Build and display the grid
+    grid_response = AgGrid(
+        df[required_columns],
+        gridOptions=gb.build(),
+        update_mode=GridUpdateMode.SELECTION_CHANGED,
+        fit_columns_on_grid_load=True,
+        allow_unsafe_jscode=True,
+        theme='streamlit',
+        height="auto",
+        custom_css={
+            ".ag-root.ag-unselectable.ag-layout-normal": {
+                "width": "100% !important"
+            },
+            ".ag-header-cell-text": {
+                "font-weight": "bold"
+            },
+            ".ag-cell": {
+                "padding": "5px"
+            }
+        }
+    )
+
+    # Handle selection if needed
+    if grid_response['selected_rows']:
+        st.session_state.selected_seminar = grid_response['selected_rows'][0]
+    
+    return grid_response
+
+
+def validate_and_submit_request(db, date, start_time, end_time, room, speaker_name, speaker_email, speaker_bio, topic, abstract, submitter_name, submitter_email):
+    if not date or not start_time or not end_time or not room or not topic or not submitter_name or not submitter_email:
+        st.error("Please fill in all mandatory fields marked with *")
+    elif speaker_email and not validate_email(speaker_email):
+        st.error("Please enter a valid email address for the speaker.")
+    elif start_time >= end_time:
+        st.error("End time must be after start time.")
+    else:
+        success, message = db.create_seminar_request(
+            str(date), start_time.strftime("%H:%M:%S"), end_time.strftime("%H:%M:%S"),
+            speaker_name, speaker_email, speaker_bio, topic, abstract, room,
+            submitter_name, submitter_email
+        )
+        if success:
+            st.success(message)
+        else:
+            st.warning(message)
+
+
 def show():
     st.title("Seminar Calendar")
     db = SeminarDB()
 
-    tab1, tab2 = st.tabs(["Seminar Schedule", "Request Seminar"])
+    tab1, tab2, tab3 = st.tabs(["Upcoming Seminar", "Past Seminar", "Request Seminar"])
 
+    # Upcoming Seminars Tab
     with tab1:
         seminars = db.fetch_future_seminars()
-        
         if not seminars:
             st.warning("No upcoming seminars found.")
         else:
-            df = pd.DataFrame(seminars, columns=['id', 'date', 'start_time', 'end_time', 'speaker_name', 'speaker_email', 'speaker_bio', 'topic', 'abstract', 'room'])
-            df['date'] = pd.to_datetime(df['date'])
-            df['start_time'] = pd.to_datetime(df['start_time'], format='%H:%M:%S').dt.time
-            df['end_time'] = pd.to_datetime(df['end_time'], format='%H:%M:%S').dt.time
-            df['datetime'] = pd.to_datetime(df['date'].astype(str) + ' ' + df['start_time'].astype(str))
-            df = df.sort_values('datetime')
+            display_seminars_table(seminars, "Upcoming Seminar")
 
-            fig = go.Figure(data=[go.Table(
-                columnwidth=[1, 1, 4, 1, 1],  # Adjusting column widths: Date, Time, Room smaller; Topic wider
-                header=dict(
-                    values=['Date', 'Time', 'Topic', 'Speaker', 'Room'],
-                    fill_color='#4CAF50',
-                    align='left',
-                    font=dict(color='white', size=14)
-                ),
-                cells=dict(
-                    values=[
-                        df.date.dt.strftime('%Y-%m-%d'),
-                        df.start_time.apply(lambda t: t.strftime('%H:%M')) + ' - ' + df.end_time.apply(lambda t: t.strftime('%H:%M')),
-                        df.topic,
-                        df.speaker_name,
-                        df.room
-                    ],
-                    align='left',
-                    font=dict(color='darkslate gray', size=13),
-                    fill_color='white',
-                    height=30  # Adjust row height for better spacing
-                )
-            )])
-
-            fig.update_layout(
-                title='Upcoming Seminars',
-                height=300,  # Set a fixed height for the table
-                margin=dict(l=0, r=0, t=30, b=0),
-                paper_bgcolor='white'
-            )
-
-            st.plotly_chart(fig, use_container_width=True)
-
-
-
-            st.markdown('-----------------')
-            st.subheader("Seminar Details")
-            selected_seminar = st.selectbox("Select a seminar for more information", df['topic'])
-            if selected_seminar:
-                seminar = df[df['topic'] == selected_seminar].iloc[0]
-                
-                # Create a styled container for seminar details
-                with st.container():
-                    st.markdown(f"""
-                            <style>
-                                .seminar-details {{
-                                    background-color: #f0f2f6;
-                                    border-radius: 10px;
-                                    padding: 20px;
-                                    margin-bottom: 20px;
-                                    border: 1px solid #ccc; /* Added border to frame the section */
-                                }}
-                                .seminar-details h4 {{
-                                    color: #1f77b4;
-                                    margin-bottom: 15px;
-                                }}
-                                .seminar-details .label {{
-                                    font-weight: bold;
-                                    color: #2c3e50;
-                                }}
-                                .seminar-info {{
-                                    display: flex;
-                                    flex-wrap: wrap;
-                                    justify-content: space-between;
-                                }}
-                                .seminar-info div {{
-                                    width: 45%;
-                                    margin-bottom: 10px;
-                                }}
-                                .speaker-abstract-container {{
-                                    display: flex;
-                                    justify-content: space-between;
-                                    gap: 10px; /* Reduced the gap between the Speaker Bio and Abstract sections */
-                                }}
-                                .speaker-abstract-container div {{
-                                    width: 48%; /* Adjusting width of each column */
-                                }}
-                            </style>
-
-                            <div class="seminar-details">
-                                <h4>{seminar['topic']}</h4>
-                                <div class="seminar-info">
-                                    <div><span class="label">Time:</span> {seminar['date'].strftime('%Y-%m-%d')} {' '} {seminar['start_time'].strftime('%H:%M')} - {seminar['end_time'].strftime('%H:%M')}</div>
-                                    <div><span class="label">Room:</span> {seminar['room']}</div>
-                                    <div><span class="label">Speaker:</span> {seminar['speaker_name']}</div>
-                                    <div><span class="label">Email:</span> {seminar['speaker_email']}</div>
-                                </div>
-                            </div>
-                            """, unsafe_allow_html=True)
-
-                    col1, col2 = st.columns(2)
-                    with col1:
-                        with st.expander("", expanded=True):
-                            st.markdown(f"""
-                            <div style='background-color: white; padding: 0px; border-radius: 5px;'>
-                                <h4 style='color: #1f77b4; margin-bottom: 10px;'>Speaker Bio</h4>  <!-- Custom styled title -->
-                                {seminar['speaker_bio']}
-                            </div>
-                            """, unsafe_allow_html=True)
-
-                    with col2:
-                        with st.expander("", expanded=True):
-                            st.markdown(f"""
-                            <div style='background-color: white; padding: 0px; border-radius: 5px;'>
-                                <h4 style='color: #1f77b4; margin-bottom: 10px;'>Abstract</h4>  <!-- Custom styled title -->
-                                {seminar['abstract']}
-                            </div>
-                            """, unsafe_allow_html=True)
-
-
+    # Past Seminars Tab
     with tab2:
+        past_seminars = db.fetch_past_seminars()
+        if not past_seminars:
+            st.warning("No past seminars found.")
+        else:
+            display_seminars_table(past_seminars, "Past Seminar")
+    
+    # Request Seminar Tab
+    with tab3:
         st.subheader("Request a Seminar")
         with st.form("request_seminar_form"):
-            # Mandatory fields with red asterisks
             date = st.date_input("Seminar Date *")  # Seminar date is mandatory
             start_time = time_picker("Start Time *", default_time=time(12, 0))  # Start time is mandatory
             end_time = time_picker("End Time *", default_time=time(13, 0))  # End time is mandatory
@@ -151,28 +309,15 @@ def show():
             speaker_bio = st.text_area("Speaker Bio")  # Optional
             topic = st.text_input("Topic *")  # Mandatory field
             abstract = st.text_area("Abstract")
-            
-            st.markdown("--------------")
             submitter_name = st.text_input("Your Name *")  # Mandatory field
             submitter_email = st.text_input("Your Email *")  # Mandatory field
             
             submit_button = st.form_submit_button("Submit Request")
 
-        # Validation when form is submitted
         if submit_button:
-            # Check if all mandatory fields are filled
-            if not date or not start_time or not end_time or not room or not topic or not submitter_name or not submitter_email:
-                st.error("Please fill in all mandatory fields marked with *")
-            else:
-                success, message = db.create_seminar_request(
-                    str(date), start_time.strftime("%H:%M:%S"), end_time.strftime("%H:%M:%S"),
-                    speaker_name, speaker_email, speaker_bio, topic, abstract, room,
-                    submitter_name, submitter_email
-                )
-                if success:
-                    st.success(message)
-                else:
-                    st.warning(message)
-
+            validate_and_submit_request(
+                db, date, start_time, end_time, room, speaker_name, speaker_email,
+                speaker_bio, topic, abstract, submitter_name, submitter_email
+            )
 
     db.close()
