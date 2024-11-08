@@ -152,57 +152,31 @@ def display_seminars_table_orig(seminars, title):
 
 def display_seminars_table(seminars, title):
     """Helper function to display seminars table using AgGrid."""
-    # Create DataFrame
-    df = pd.DataFrame(seminars)
-    
-    # Convert column names to strings to prevent integer column name issues
-    df.columns = df.columns.astype(str)
-    
-    # Check and format date/time columns if they exist
-    if 'date' in df.columns:
-        df['date'] = pd.to_datetime(df['date']).dt.strftime('%Y-%m-%d')
-    
-    if 'start_time' in df.columns:
-        df['start_time'] = pd.to_datetime(df['start_time'], format='%H:%M:%S').dt.strftime('%H:%M')
-    
-    if 'end_time' in df.columns:
-        df['end_time'] = pd.to_datetime(df['end_time'], format='%H:%M:%S').dt.strftime('%H:%M')
-    
-    # Create datetime column for sorting if both date and start_time exist
-    if 'date' in df.columns and 'start_time' in df.columns:
-        df['datetime'] = pd.to_datetime(df['date'].astype(str) + ' ' + df['start_time'].astype(str))
-        df = df.sort_values('datetime', ascending=('Past' not in title))
+    df = pd.DataFrame(seminars, columns=['id', 'date', 'start_time', 'end_time', 'speaker_name', 'speaker_email', 'speaker_bio', 'topic', 'abstract', 'room'])
+    df['date'] = pd.to_datetime(df['date']).dt.strftime('%Y-%m-%d')
+    df['start_time'] = pd.to_datetime(df['start_time'], format='%H:%M:%S').dt.strftime('%H:%M')
+    df['end_time'] = pd.to_datetime(df['end_time'], format='%H:%M:%S').dt.strftime('%H:%M')
+    df['datetime'] = pd.to_datetime(df['date'].astype(str) + ' ' + df['start_time'].astype(str))
+    df = df.sort_values('datetime')
 
-    # Select display columns that exist in the DataFrame
-    display_columns = []
-    for col in ['id', 'date', 'start_time', 'end_time', 'topic', 'speaker_name', 'room']:
-        if col in df.columns:
-            display_columns.append(col)
-
-    # Initialize GridOptionsBuilder with available columns
+    display_columns = ['id', 'date', 'start_time', 'end_time', 'topic', 'speaker_name', 'room']
     gb = GridOptionsBuilder.from_dataframe(df[display_columns])
     
-    # Configure columns that exist
-    if 'id' in display_columns:
-        gb.configure_column("id", width=60)
-    if 'date' in display_columns:
-        gb.configure_column("date", width=100)
-    if 'start_time' in display_columns:
-        gb.configure_column("start_time", width=90)
-    if 'end_time' in display_columns:
-        gb.configure_column("end_time", width=90)
-    if 'topic' in display_columns:
-        gb.configure_column("topic", width=400, wrapText=True, autoHeight=True)
-    if 'speaker_name' in display_columns:
-        gb.configure_column("speaker_name", width=150)
-    if 'room' in display_columns:
-        gb.configure_column("room", width=100)
+    # Only change the column widths to prevent truncation
+    gb.configure_column("id", width=60)
+    gb.configure_column("date", width=100)
+    gb.configure_column("start_time", width=90)
+    gb.configure_column("end_time", width=90)
+    gb.configure_column("topic", width=400, wrapText=True, autoHeight=True)
+    gb.configure_column("speaker_name", width=150)
+    gb.configure_column("room", width=100)
     
-    # Configure selection
     gb.configure_selection('single', use_checkbox=False, groupSelectsChildren=True, groupSelectsFiltered=True)
     grid_options = gb.build()
 
-    # Display grid
+    # Add suppressColumnVirtualisation to prevent column truncation
+    grid_options['suppressColumnVirtualisation'] = True
+
     grid_response = AgGrid(
         df[display_columns],
         gridOptions=grid_options,
@@ -213,7 +187,6 @@ def display_seminars_table(seminars, title):
         allow_unsafe_jscode=True
     )
 
-    # Handle selection
     selected_rows = pd.DataFrame(grid_response['selected_rows'])
     if not selected_rows.empty and 'id' in selected_rows.columns:
         selected_seminar_id = selected_rows.iloc[0]['id']
@@ -227,7 +200,7 @@ def display_seminars_table(seminars, title):
         display_seminar_details(st.session_state.selected_seminar)
 
     return grid_response
-    
+
 def validate_and_submit_request(db, date, start_time, end_time, room, speaker_name, speaker_email, speaker_bio, topic, abstract, submitter_name, submitter_email):
     if not date or not start_time or not end_time or not room or not topic or not submitter_name or not submitter_email:
         st.error("Please fill in all mandatory fields marked with *")
