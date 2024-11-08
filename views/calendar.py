@@ -107,7 +107,7 @@ def display_seminar_details(seminar):
                 </div>
                 """, unsafe_allow_html=True)
 
-def display_seminars_table_original(seminars, title):
+def display_seminars_table_orig(seminars, title):
     """Helper function to display seminars table using AgGrid."""
     df = pd.DataFrame(seminars, columns=['id', 'date', 'start_time', 'end_time', 'speaker_name', 'speaker_email', 'speaker_bio', 'topic', 'abstract', 'room'])
     df['date'] = pd.to_datetime(df['date']).dt.strftime('%Y-%m-%d')
@@ -148,7 +148,6 @@ def display_seminars_table_original(seminars, title):
 
     if st.session_state.selected_seminar:
         display_seminar_details(st.session_state.selected_seminar)
-
 
 
 def display_seminars_table(seminars, title):
@@ -227,14 +226,8 @@ def display_seminars_table(seminars, title):
     
     return grid_response
 
-# Usage in your main app
-with tab1:
-    st.markdown("### Upcoming Seminars")
-    upcoming_response = display_seminars_table(upcoming_seminars, "Upcoming Seminars")
 
-with tab2:
-    st.markdown("### Past Seminars")
-    past_response = display_seminars_table(past_seminars, "Past Seminars")
+
 
 def validate_and_submit_request(db, date, start_time, end_time, room, speaker_name, speaker_email, speaker_bio, topic, abstract, submitter_name, submitter_email):
     if not date or not start_time or not end_time or not room or not topic or not submitter_name or not submitter_email:
