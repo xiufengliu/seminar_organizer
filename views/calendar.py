@@ -152,33 +152,51 @@ def display_seminars_table_orig(seminars, title):
 
 def display_seminars_table(seminars, title):
     """Helper function to display seminars table using AgGrid."""
-    # Create DataFrame and ensure all column names are strings
+    # Create DataFrame
     df = pd.DataFrame(seminars)
-    df.columns = df.columns.astype(str)  # Convert all column names to strings
     
-    # Format date and time columns
-    df['date'] = pd.to_datetime(df['date']).dt.strftime('%Y-%m-%d')
-    df['start_time'] = pd.to_datetime(df['start_time'], format='%H:%M:%S').dt.strftime('%H:%M')
-    df['end_time'] = pd.to_datetime(df['end_time'], format='%H:%M:%S').dt.strftime('%H:%M')
+    # Convert column names to strings to prevent integer column name issues
+    df.columns = df.columns.astype(str)
     
-    # Sort based on date and time
-    df['datetime'] = pd.to_datetime(df['date'].astype(str) + ' ' + df['start_time'].astype(str))
-    df = df.sort_values('datetime', ascending=('Past' not in title))
+    # Check and format date/time columns if they exist
+    if 'date' in df.columns:
+        df['date'] = pd.to_datetime(df['date']).dt.strftime('%Y-%m-%d')
+    
+    if 'start_time' in df.columns:
+        df['start_time'] = pd.to_datetime(df['start_time'], format='%H:%M:%S').dt.strftime('%H:%M')
+    
+    if 'end_time' in df.columns:
+        df['end_time'] = pd.to_datetime(df['end_time'], format='%H:%M:%S').dt.strftime('%H:%M')
+    
+    # Create datetime column for sorting if both date and start_time exist
+    if 'date' in df.columns and 'start_time' in df.columns:
+        df['datetime'] = pd.to_datetime(df['date'].astype(str) + ' ' + df['start_time'].astype(str))
+        df = df.sort_values('datetime', ascending=('Past' not in title))
 
-    # Select display columns
-    display_columns = ['id', 'date', 'start_time', 'end_time', 'topic', 'speaker_name', 'room']
-    
-    # Initialize GridOptionsBuilder with display columns
+    # Select display columns that exist in the DataFrame
+    display_columns = []
+    for col in ['id', 'date', 'start_time', 'end_time', 'topic', 'speaker_name', 'room']:
+        if col in df.columns:
+            display_columns.append(col)
+
+    # Initialize GridOptionsBuilder with available columns
     gb = GridOptionsBuilder.from_dataframe(df[display_columns])
     
-    # Configure columns
-    gb.configure_column("id", width=60)
-    gb.configure_column("date", width=100)
-    gb.configure_column("start_time", width=90)
-    gb.configure_column("end_time", width=90)
-    gb.configure_column("topic", width=400, wrapText=True, autoHeight=True)
-    gb.configure_column("speaker_name", width=150)
-    gb.configure_column("room", width=100)
+    # Configure columns that exist
+    if 'id' in display_columns:
+        gb.configure_column("id", width=60)
+    if 'date' in display_columns:
+        gb.configure_column("date", width=100)
+    if 'start_time' in display_columns:
+        gb.configure_column("start_time", width=90)
+    if 'end_time' in display_columns:
+        gb.configure_column("end_time", width=90)
+    if 'topic' in display_columns:
+        gb.configure_column("topic", width=400, wrapText=True, autoHeight=True)
+    if 'speaker_name' in display_columns:
+        gb.configure_column("speaker_name", width=150)
+    if 'room' in display_columns:
+        gb.configure_column("room", width=100)
     
     # Configure selection
     gb.configure_selection('single', use_checkbox=False, groupSelectsChildren=True, groupSelectsFiltered=True)
@@ -209,8 +227,7 @@ def display_seminars_table(seminars, title):
         display_seminar_details(st.session_state.selected_seminar)
 
     return grid_response
-
-
+    
 def validate_and_submit_request(db, date, start_time, end_time, room, speaker_name, speaker_email, speaker_bio, topic, abstract, submitter_name, submitter_email):
     if not date or not start_time or not end_time or not room or not topic or not submitter_name or not submitter_email:
         st.error("Please fill in all mandatory fields marked with *")
