@@ -107,7 +107,7 @@ def display_seminar_details(seminar):
                 </div>
                 """, unsafe_allow_html=True)
 
-def display_seminars_table(seminars, title):
+def display_seminars_table_original(seminars, title):
     """Helper function to display seminars table using AgGrid."""
     df = pd.DataFrame(seminars, columns=['id', 'date', 'start_time', 'end_time', 'speaker_name', 'speaker_email', 'speaker_bio', 'topic', 'abstract', 'room'])
     df['date'] = pd.to_datetime(df['date']).dt.strftime('%Y-%m-%d')
@@ -149,6 +149,92 @@ def display_seminars_table(seminars, title):
     if st.session_state.selected_seminar:
         display_seminar_details(st.session_state.selected_seminar)
 
+
+
+def display_seminars_table(seminars, title):
+    # Create DataFrame
+    df = pd.DataFrame(seminars)
+    
+    # Initialize GridOptionsBuilder
+    gb = GridOptionsBuilder.from_dataframe(df)
+    
+    # Configure grid options with specific fixes for table display issues
+    gb.configure_grid_options(
+        domLayout='normal',  # Changed from 'autoHeight'
+        enableCellTextSelection=True,
+        ensureDomOrder=True,
+        suppressColumnVirtualisation=False,  # Changed from True
+        suppressRowVirtualisation=False,     # Changed from True
+        suppressHorizontalScroll=False,
+        rowHeight=50,
+        # Add these new options
+        alwaysShowHorizontalScroll=True,
+        enableBrowserTooltips=True,
+        tooltipShowDelay=0,
+        # Force the grid to maintain its size
+        maintainDomOrder=True
+    )
+    
+    # Configure columns with more flexible widths
+    gb.configure_column("id", minWidth=60, maxWidth=80)
+    gb.configure_column("date", minWidth=100, maxWidth=120)
+    gb.configure_column("start_time", minWidth=90, maxWidth=110)
+    gb.configure_column("end_time", minWidth=90, maxWidth=110)
+    gb.configure_column("topic", 
+                       minWidth=300,
+                       autoHeight=True,
+                       wrapText=True,
+                       tooltipField="topic")
+    gb.configure_column("speaker_name", minWidth=120, maxWidth=150)
+    gb.configure_column("room", minWidth=100, maxWidth=120)
+    
+    # Configure default column properties
+    gb.configure_default_column(
+        resizable=True,
+        sorteable=True,
+        filterable=True,
+        tooltipComponent="agTooltipComponent"
+    )
+    
+    # Build and display grid with specific container settings
+    with st.container():
+        grid_response = AgGrid(
+            df,
+            gridOptions=gb.build(),
+            update_mode=GridUpdateMode.SELECTION_CHANGED,
+            fit_columns_on_grid_load=False,  # Changed from True
+            allow_unsafe_jscode=True,
+            theme='streamlit',
+            height=400,  # Fixed height
+            custom_css={
+                "#gridToolBar": {
+                    "padding-bottom": "0px !important"
+                },
+                ".ag-root-wrapper": {
+                    "border": "1px solid #ddd",
+                    "border-radius": "4px"
+                },
+                ".ag-header-cell": {
+                    "background-color": "#f8f9fa"
+                },
+                ".ag-cell": {
+                    "padding-left": "5px",
+                    "padding-right": "5px"
+                }
+            },
+            reload_data=True
+        )
+    
+    return grid_response
+
+# Usage in your main app
+with tab1:
+    st.markdown("### Upcoming Seminars")
+    upcoming_response = display_seminars_table(upcoming_seminars, "Upcoming Seminars")
+
+with tab2:
+    st.markdown("### Past Seminars")
+    past_response = display_seminars_table(past_seminars, "Past Seminars")
 
 def validate_and_submit_request(db, date, start_time, end_time, room, speaker_name, speaker_email, speaker_bio, topic, abstract, submitter_name, submitter_email):
     if not date or not start_time or not end_time or not room or not topic or not submitter_name or not submitter_email:
