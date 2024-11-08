@@ -151,82 +151,64 @@ def display_seminars_table_orig(seminars, title):
 
 
 def display_seminars_table(seminars, title):
-    # Create DataFrame
+    """Helper function to display seminars table using AgGrid."""
+    # Create DataFrame and ensure all column names are strings
     df = pd.DataFrame(seminars)
+    df.columns = df.columns.astype(str)  # Convert all column names to strings
     
-    # Initialize GridOptionsBuilder
-    gb = GridOptionsBuilder.from_dataframe(df)
+    # Format date and time columns
+    df['date'] = pd.to_datetime(df['date']).dt.strftime('%Y-%m-%d')
+    df['start_time'] = pd.to_datetime(df['start_time'], format='%H:%M:%S').dt.strftime('%H:%M')
+    df['end_time'] = pd.to_datetime(df['end_time'], format='%H:%M:%S').dt.strftime('%H:%M')
     
-    # Configure grid options with specific fixes for table display issues
-    gb.configure_grid_options(
-        domLayout='normal',  # Changed from 'autoHeight'
-        enableCellTextSelection=True,
-        ensureDomOrder=True,
-        suppressColumnVirtualisation=False,  # Changed from True
-        suppressRowVirtualisation=False,     # Changed from True
-        suppressHorizontalScroll=False,
-        rowHeight=50,
-        # Add these new options
-        alwaysShowHorizontalScroll=True,
-        enableBrowserTooltips=True,
-        tooltipShowDelay=0,
-        # Force the grid to maintain its size
-        maintainDomOrder=True
+    # Sort based on date and time
+    df['datetime'] = pd.to_datetime(df['date'].astype(str) + ' ' + df['start_time'].astype(str))
+    df = df.sort_values('datetime', ascending=('Past' not in title))
+
+    # Select display columns
+    display_columns = ['id', 'date', 'start_time', 'end_time', 'topic', 'speaker_name', 'room']
+    
+    # Initialize GridOptionsBuilder with display columns
+    gb = GridOptionsBuilder.from_dataframe(df[display_columns])
+    
+    # Configure columns
+    gb.configure_column("id", width=60)
+    gb.configure_column("date", width=100)
+    gb.configure_column("start_time", width=90)
+    gb.configure_column("end_time", width=90)
+    gb.configure_column("topic", width=400, wrapText=True, autoHeight=True)
+    gb.configure_column("speaker_name", width=150)
+    gb.configure_column("room", width=100)
+    
+    # Configure selection
+    gb.configure_selection('single', use_checkbox=False, groupSelectsChildren=True, groupSelectsFiltered=True)
+    grid_options = gb.build()
+
+    # Display grid
+    grid_response = AgGrid(
+        df[display_columns],
+        gridOptions=grid_options,
+        height=300,
+        data_return_mode='AS_INPUT',
+        update_mode='SELECTION_CHANGED',
+        fit_columns_on_grid_load=True,
+        allow_unsafe_jscode=True
     )
-    
-    # Configure columns with more flexible widths
-    gb.configure_column("id", minWidth=60, maxWidth=80)
-    gb.configure_column("date", minWidth=100, maxWidth=120)
-    gb.configure_column("start_time", minWidth=90, maxWidth=110)
-    gb.configure_column("end_time", minWidth=90, maxWidth=110)
-    gb.configure_column("topic", 
-                       minWidth=300,
-                       autoHeight=True,
-                       wrapText=True,
-                       tooltipField="topic")
-    gb.configure_column("speaker_name", minWidth=120, maxWidth=150)
-    gb.configure_column("room", minWidth=100, maxWidth=120)
-    
-    # Configure default column properties
-    gb.configure_default_column(
-        resizable=True,
-        sorteable=True,
-        filterable=True,
-        tooltipComponent="agTooltipComponent"
-    )
-    
-    # Build and display grid with specific container settings
-    with st.container():
-        grid_response = AgGrid(
-            df,
-            gridOptions=gb.build(),
-            update_mode=GridUpdateMode.SELECTION_CHANGED,
-            fit_columns_on_grid_load=False,  # Changed from True
-            allow_unsafe_jscode=True,
-            theme='streamlit',
-            height=400,  # Fixed height
-            custom_css={
-                "#gridToolBar": {
-                    "padding-bottom": "0px !important"
-                },
-                ".ag-root-wrapper": {
-                    "border": "1px solid #ddd",
-                    "border-radius": "4px"
-                },
-                ".ag-header-cell": {
-                    "background-color": "#f8f9fa"
-                },
-                ".ag-cell": {
-                    "padding-left": "5px",
-                    "padding-right": "5px"
-                }
-            },
-            reload_data=True
-        )
-    
+
+    # Handle selection
+    selected_rows = pd.DataFrame(grid_response['selected_rows'])
+    if not selected_rows.empty and 'id' in selected_rows.columns:
+        selected_seminar_id = selected_rows.iloc[0]['id']
+        selected_seminar = df[df['id'] == selected_seminar_id].iloc[0].to_dict()
+        st.session_state.selected_seminar = selected_seminar
+        logging.info(f"{title} selected: {selected_seminar['topic']}")
+    else:
+        st.session_state.selected_seminar = None
+
+    if st.session_state.selected_seminar:
+        display_seminar_details(st.session_state.selected_seminar)
+
     return grid_response
-
-
 
 
 def validate_and_submit_request(db, date, start_time, end_time, room, speaker_name, speaker_email, speaker_bio, topic, abstract, submitter_name, submitter_email):
