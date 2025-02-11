@@ -152,7 +152,7 @@ def display_seminars_table_orig(seminars, title):
 
 def display_seminars_table(seminars, title):
     """Helper function to display seminars table using AgGrid."""
-    df = pd.DataFrame(seminars, columns=['id', 'date', 'start_time', 'end_time', 'speaker_name', 'speaker_email', 'speaker_bio','seminar_type', 'topic', 'abstract', 'room'])
+    df = pd.DataFrame(seminars, columns=['id', 'date', 'start_time', 'end_time', 'speaker_name', 'speaker_email', 'speaker_bio', 'topic', 'abstract', 'room', 'seminar_type'])
     df['date'] = pd.to_datetime(df['date']).dt.strftime('%Y-%m-%d')
     df['start_time'] = pd.to_datetime(df['start_time'], format='%H:%M:%S').dt.strftime('%H:%M')
     df['end_time'] = pd.to_datetime(df['end_time'], format='%H:%M:%S').dt.strftime('%H:%M')
