@@ -39,7 +39,8 @@ class SeminarDB:
                     speaker_bio TEXT,
                     topic TEXT NOT NULL,
                     abstract TEXT,
-                    room TEXT NOT NULL
+                    room TEXT NOT NULL,
+                    seminar_type TEXT NOT NULL DEFAULT 'Others'        
                 )
             ''')
             
@@ -58,7 +59,8 @@ class SeminarDB:
                     room TEXT NOT NULL,
                     submitter_name TEXT NOT NULL,
                     submitter_email TEXT NOT NULL,
-                    status TEXT DEFAULT 'pending'
+                    status TEXT DEFAULT 'pending',
+                    seminar_type TEXT NOT NULL DEFAULT 'Others' 
                 )
             ''')
             
@@ -167,7 +169,7 @@ class SeminarDB:
         return renumbered_seminars
 
 
-    def create_seminar_request(self, date, start_time, end_time, speaker_name, speaker_email, speaker_bio, topic, abstract, room, submitter_name, submitter_email):
+    def create_seminar_request(self, date, start_time, end_time, speaker_name, speaker_email, speaker_bio, topic, abstract, room, submitter_name, submitter_email, seminar_type):
         # Use a context manager to manage the connection
         with self.connect() as conn:
             cursor = conn.cursor()
@@ -185,9 +187,9 @@ class SeminarDB:
             
             # If no similar request exists, insert the new request
             cursor.execute('''
-                INSERT INTO seminar_requests (date, start_time, end_time, speaker_name, speaker_email, speaker_bio, topic, abstract, room, submitter_name, submitter_email)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            ''', (date, start_time, end_time, speaker_name, speaker_email, speaker_bio, topic, abstract, room, submitter_name, submitter_email))
+                INSERT INTO seminar_requests (date, start_time, end_time, speaker_name, speaker_email, speaker_bio, topic, abstract, room, submitter_name, submitter_email, seminar_type)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ''', (date, start_time, end_time, speaker_name, speaker_email, speaker_bio, topic, abstract, room, submitter_name, submitter_email, seminar_type))
             
             # Commit the transaction
             conn.commit()
@@ -298,7 +300,7 @@ class SeminarDB:
         return count > 0
 
 
-    def create_seminar(self, date, start_time, end_time, speaker_name, speaker_email, speaker_bio, topic, abstract, room):
+    def create_seminar(self, date, start_time, end_time, speaker_name, speaker_email, speaker_bio, topic, abstract, room, seminar_type):
         # First, check if there is a time conflict in the room
         if self.check_time_conflict(date, start_time, end_time, room):
             return False, "Time conflict: Another seminar is scheduled in the same room during this time slot."
@@ -307,9 +309,9 @@ class SeminarDB:
         with self.connect() as conn:
             cursor = conn.cursor()
             cursor.execute('''
-                INSERT INTO seminars (date, start_time, end_time, speaker_name, speaker_email, speaker_bio, topic, abstract, room)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-            ''', (date, start_time, end_time, speaker_name, speaker_email, speaker_bio, topic, abstract, room))
+                INSERT INTO seminars (date, start_time, end_time, speaker_name, speaker_email, speaker_bio, topic, abstract, room, seminar_type)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ''', (date, start_time, end_time, speaker_name, speaker_email, speaker_bio, topic, abstract, room, seminar_type))
             
             # Commit the transaction to save the new seminar
             conn.commit()
@@ -317,7 +319,7 @@ class SeminarDB:
         return True, "Seminar added successfully."
 
 
-    def update_seminar(self, seminar_id, date, start_time, end_time, speaker_name, speaker_email, speaker_bio, topic, abstract, room):
+    def update_seminar(self, seminar_id, date, start_time, end_time, speaker_name, speaker_email, speaker_bio, topic, abstract, room, seminar_type):
         # Check if there's a time conflict with other seminars
         if self.check_time_conflict(date, start_time, end_time, room, exclude_id=seminar_id):
             return False, "Time conflict: Another seminar is scheduled in the same room during this time slot."
@@ -327,9 +329,9 @@ class SeminarDB:
             cursor = conn.cursor()
             cursor.execute('''
                 UPDATE seminars
-                SET date = ?, start_time = ?, end_time = ?, speaker_name = ?, speaker_email = ?, speaker_bio = ?, topic = ?, abstract = ?, room = ?
+                SET date = ?, start_time = ?, end_time = ?, speaker_name = ?, speaker_email = ?, speaker_bio = ?, topic = ?, abstract = ?, room = ?, seminar_type=?
                 WHERE id = ?
-            ''', (date, start_time, end_time, speaker_name, speaker_email, speaker_bio, topic, abstract, room, seminar_id))
+            ''', (date, start_time, end_time, speaker_name, speaker_email, speaker_bio, topic, abstract, room, seminar_type, seminar_id))
             
             # Commit the transaction to save the updates
             conn.commit()

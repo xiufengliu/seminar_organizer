@@ -11,6 +11,11 @@ def time_picker(label, default_time=time(9, 0)):
 def show():
     st.title("Admin Panel")
     db = SeminarDB()
+    SEMINAR_TYPES = [
+        "Economics of Green Transition Seminar",
+        "CEP Division Seminar",
+        "Others"
+    ]
 
     if 'admin_logged_in' not in st.session_state:
         st.session_state.admin_logged_in = False
@@ -40,13 +45,18 @@ def show():
                     speaker_name = st.text_input("Speaker Name")
                     speaker_email = st.text_input("Speaker Email")
                     speaker_bio = st.text_area("Speaker Bio")
+                    seminar_type = st.selectbox(
+                        "Seminar Type *",
+                        options=SEMINAR_TYPES,
+                        index=0
+                    )
                     topic = st.text_input("Topic")
                     abstract = st.text_area("Abstract")
                     submit_button = st.form_submit_button("Add Seminar")
 
                 if submit_button:
                     success, message = db.create_seminar(str(date), start_time.strftime("%H:%M:%S"), end_time.strftime("%H:%M:%S"), 
-                                                        speaker_name, speaker_email, speaker_bio, topic, abstract, room)
+                                                        speaker_name, speaker_email, speaker_bio, topic, abstract, room, seminar_type)
                     if success:
                         st.success(message)
                     else:
@@ -69,13 +79,18 @@ def show():
                             speaker_name = st.text_input("Speaker Name", value=seminar[4])
                             speaker_email = st.text_input("Speaker Email", value=seminar[5])
                             speaker_bio = st.text_area("Speaker Bio", value=seminar[6])
+                            seminar_type = st.selectbox(
+                                "Seminar Type *",
+                                options=SEMINAR_TYPES,
+                                index=0
+                            )
                             topic = st.text_input("Topic", value=seminar[7])
                             abstract = st.text_area("Abstract", value=seminar[8])
                             submit_button = st.form_submit_button("Update Seminar")
 
                         if submit_button:
                             success, message = db.update_seminar(seminar[0], str(date), start_time.strftime("%H:%M:%S"), end_time.strftime("%H:%M:%S"),
-                                                                speaker_name, speaker_email, speaker_bio, topic, abstract, room)
+                                                                speaker_name, speaker_email, speaker_bio, topic, abstract, room, seminar_type)
                             if success:
                                 st.success(message)
                             else:
@@ -134,6 +149,7 @@ def show():
                         st.write(f"Speaker: {request[4]}")
                         st.write(f"Email: {request[5]}")
                         st.write(f"Bio: {request[6]}")
+                        st.write(f"Seminar Type: {request[13]}")  # Add seminar type display
                         st.write(f"Topic: {request[7]}")
                         st.write(f"Abstract: {request[8]}")
 
@@ -147,7 +163,7 @@ def show():
                         with col2:
                             if st.button("Reject", key=f"reject_{request[0]}"):
                                 for r in similar_requests:
-                                    db.update_seminar_request(r[0], *r[1:10], "rejected")
+                                    db.update_seminar_request(r[0], r[1], r[2], r[3], r[4], r[5], r[6], r[7], r[8], r[9], "rejected", r[13])
                                 st.success(f"Rejected {len(similar_requests)} similar seminar requests.")
                                 st.experimental_rerun()
                         with col3:
@@ -168,12 +184,19 @@ def show():
                         speaker_name = st.text_input("Speaker Name", value=request[4])
                         speaker_email = st.text_input("Speaker Email", value=request[5])
                         speaker_bio = st.text_area("Speaker Bio", value=request[6])
+                        # Add seminar type with proper default value
+                        current_seminar_type = request[13] if request[13] in SEMINAR_TYPES else "Others"
+                        seminar_type = st.selectbox(
+                            "Seminar Type *",
+                            options=SEMINAR_TYPES,
+                            index=SEMINAR_TYPES.index(current_seminar_type)
+                        )
                         topic = st.text_input("Topic", value=request[7])
                         abstract = st.text_area("Abstract", value=request[8])
                         
                         # Handle the case where the status might not be in the list
                         status_options = ["pending", "approved", "rejected"]
-                        current_status = request[10] if request[10] in status_options else "pending"
+                        current_status = request[12] if request[12] in status_options else "pending"
                         status = st.selectbox("Status", status_options, index=status_options.index(current_status))
                         
                         submit_button = st.form_submit_button("Update Request")
@@ -181,7 +204,7 @@ def show():
                     if submit_button:
                         db.update_seminar_request(
                             request[0], str(date), start_time.strftime("%H:%M:%S"), end_time.strftime("%H:%M:%S"),
-                            speaker_name, speaker_email, speaker_bio, topic, abstract, room, status
+                            speaker_name, speaker_email, speaker_bio, topic, abstract, room, status, seminar_type
                         )
                         st.success("Seminar request updated successfully!")
                         del st.session_state.editing_request

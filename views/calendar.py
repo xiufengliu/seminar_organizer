@@ -152,14 +152,14 @@ def display_seminars_table_orig(seminars, title):
 
 def display_seminars_table(seminars, title):
     """Helper function to display seminars table using AgGrid."""
-    df = pd.DataFrame(seminars, columns=['id', 'date', 'start_time', 'end_time', 'speaker_name', 'speaker_email', 'speaker_bio', 'topic', 'abstract', 'room'])
+    df = pd.DataFrame(seminars, columns=['id', 'date', 'start_time', 'end_time', 'speaker_name', 'speaker_email', 'speaker_bio','seminar_type', 'topic', 'abstract', 'room'])
     df['date'] = pd.to_datetime(df['date']).dt.strftime('%Y-%m-%d')
     df['start_time'] = pd.to_datetime(df['start_time'], format='%H:%M:%S').dt.strftime('%H:%M')
     df['end_time'] = pd.to_datetime(df['end_time'], format='%H:%M:%S').dt.strftime('%H:%M')
     df['datetime'] = pd.to_datetime(df['date'].astype(str) + ' ' + df['start_time'].astype(str))
     df = df.sort_values('datetime')
 
-    display_columns = ['id', 'date', 'start_time', 'end_time', 'topic', 'speaker_name', 'room']
+    display_columns = ['id', 'date', 'start_time', 'end_time', 'seminar_type', 'topic', 'speaker_name', 'room']
     gb = GridOptionsBuilder.from_dataframe(df[display_columns])
     
     # Only change the column widths to prevent truncation
@@ -167,6 +167,7 @@ def display_seminars_table(seminars, title):
     gb.configure_column("date", width=100)
     gb.configure_column("start_time", width=90)
     gb.configure_column("end_time", width=90)
+    gb.configure_column("seminar_type", width=200)
     gb.configure_column("topic", width=400, wrapText=True, autoHeight=True)
     gb.configure_column("speaker_name", width=150)
     gb.configure_column("room", width=100)
@@ -201,7 +202,7 @@ def display_seminars_table(seminars, title):
 
     return grid_response
 
-def validate_and_submit_request(db, date, start_time, end_time, room, speaker_name, speaker_email, speaker_bio, topic, abstract, submitter_name, submitter_email):
+def validate_and_submit_request(db, date, start_time, end_time, room, speaker_name, speaker_email, speaker_bio, topic, abstract, submitter_name, submitter_email, seminar_type):
     if not date or not start_time or not end_time or not room or not topic or not submitter_name or not submitter_email:
         st.error("Please fill in all mandatory fields marked with *")
     elif speaker_email and not validate_email(speaker_email):
@@ -212,7 +213,7 @@ def validate_and_submit_request(db, date, start_time, end_time, room, speaker_na
         success, message = db.create_seminar_request(
             str(date), start_time.strftime("%H:%M:%S"), end_time.strftime("%H:%M:%S"),
             speaker_name, speaker_email, speaker_bio, topic, abstract, room,
-            submitter_name, submitter_email
+            submitter_name, submitter_email, seminar_type
         )
         if success:
             st.success(message)
@@ -225,6 +226,12 @@ def show():
     db = SeminarDB()
 
     tab1, tab2, tab3 = st.tabs(["Upcoming Seminar", "Past Seminar", "Request Seminar"])
+     # Define seminar types
+    SEMINAR_TYPES = [
+        "Economics of Green Transition Seminar",
+        "CEP Division Seminar",
+        "Others"
+    ]
 
     # Upcoming Seminars Tab
     with tab1:
@@ -249,6 +256,11 @@ def show():
             date = st.date_input("Seminar Date *")  # Seminar date is mandatory
             start_time = time_picker("Start Time *", default_time=time(12, 0))  # Start time is mandatory
             end_time = time_picker("End Time *", default_time=time(13, 0))  # End time is mandatory
+            seminar_type = st.selectbox(
+                "Seminar Type *",
+                options=SEMINAR_TYPES,
+                index=0
+            )
             room = st.text_input("Preferred Meeting Room *")  # Mandatory field
             speaker_name = st.text_input("Speaker Name")  # Optional
             speaker_email = st.text_input("Speaker Email")  # Optional
@@ -263,7 +275,7 @@ def show():
         if submit_button:
             validate_and_submit_request(
                 db, date, start_time, end_time, room, speaker_name, speaker_email,
-                speaker_bio, topic, abstract, submitter_name, submitter_email
+                speaker_bio, topic, abstract, submitter_name, submitter_email, seminar_type
             )
 
     db.close()

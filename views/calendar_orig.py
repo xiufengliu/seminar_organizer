@@ -149,8 +149,9 @@ def display_seminars_table_original(seminars, title):
     if st.session_state.selected_seminar:
         display_seminar_details(st.session_state.selected_seminar)
 
-def display_seminars_table(seminars, title):
-    """Helper function to display seminars table using AgGrid."""
+
+def display_upcoming_seminars_table(seminars):
+    """Helper function to display upcoming seminars table using AgGrid."""
     df = pd.DataFrame(seminars, columns=['id', 'date', 'start_time', 'end_time', 'speaker_name', 'speaker_email', 'speaker_bio', 'topic', 'abstract', 'room'])
     df['date'] = pd.to_datetime(df['date']).dt.strftime('%Y-%m-%d')
     df['start_time'] = pd.to_datetime(df['start_time'], format='%H:%M:%S').dt.strftime('%H:%M')
@@ -158,67 +159,76 @@ def display_seminars_table(seminars, title):
     df['datetime'] = pd.to_datetime(df['date'].astype(str) + ' ' + df['start_time'].astype(str))
     df = df.sort_values('datetime')
 
-    display_columns = ['id', 'date', 'start_time', 'end_time', 'topic', 'speaker_name', 'room']
-    gb = GridOptionsBuilder.from_dataframe(df[display_columns])
-    
-    # Updated column configurations
-    gb.configure_grid_options(
-        domLayout='normal',
-        suppressColumnVirtualisation=False,
-        suppressRowVirtualisation=False,
-        suppressHorizontalScroll=False,
-        alwaysShowHorizontalScroll=True
-    )
-    
-    # Modified column widths and properties
-    gb.configure_column("id", minWidth=60, maxWidth=80)
-    gb.configure_column("date", minWidth=100, maxWidth=120)
-    gb.configure_column("start_time", minWidth=90, maxWidth=110)
-    gb.configure_column("end_time", minWidth=90, maxWidth=110)
-    gb.configure_column("topic", 
-                       minWidth=300,
-                       wrapText=True,
-                       autoHeight=True,
-                       flex=2)
-    gb.configure_column("speaker_name", minWidth=120, maxWidth=150)
-    gb.configure_column("room", minWidth=80, maxWidth=100)
-    
-    gb.configure_selection('single', 
-                         use_checkbox=False, 
-                         groupSelectsChildren=True, 
-                         groupSelectsFiltered=True)
-    
+    gb = GridOptionsBuilder.from_dataframe(df[['id', 'date', 'start_time', 'end_time', 'topic', 'speaker_name', 'room']])
+    gb.configure_column("id", width=4)
+    gb.configure_column("date", width=35)
+    gb.configure_column("start_time", width=35)
+    gb.configure_column("end_time", width=35)
+    gb.configure_column("topic", width=200, wrapText=True, autoHeight=True)
+    gb.configure_column("speaker_name", width=80)
+    gb.configure_column("room", width=60)
+    gb.configure_selection('single', use_checkbox=False, groupSelectsChildren=True, groupSelectsFiltered=True)
     grid_options = gb.build()
 
-    # Updated grid display configuration
     grid_response = AgGrid(
-        df[display_columns],
+        df[['id', 'date', 'start_time', 'end_time', 'topic', 'speaker_name', 'room']],
         gridOptions=grid_options,
-        height=400,  # Increased height
+        height=300,
         data_return_mode='AS_INPUT',
         update_mode='SELECTION_CHANGED',
-        fit_columns_on_grid_load=False,  # Changed to False
-        allow_unsafe_jscode=True,
-        theme='streamlit',
-        custom_css={
-            ".ag-root-wrapper": {
-                "border": "1px solid #ddd",
-                "border-radius": "4px"
-            },
-            ".ag-cell": {
-                "padding-left": "5px",
-                "padding-right": "5px"
-            }
-        }
+        fit_columns_on_grid_load=True,
+        allow_unsafe_jscode=True
     )
 
-    # Selection handling remains the same
     selected_rows = pd.DataFrame(grid_response['selected_rows'])
     if not selected_rows.empty and 'id' in selected_rows.columns:
         selected_seminar_id = selected_rows.iloc[0]['id']
         selected_seminar = df[df['id'] == selected_seminar_id].iloc[0].to_dict()
         st.session_state.selected_seminar = selected_seminar
-        logging.info(f"{title} selected: {selected_seminar['topic']}")
+        logging.info(f"Upcoming seminar selected: {selected_seminar['topic']}")
+    else:
+        st.session_state.selected_seminar = None
+
+    if st.session_state.selected_seminar:
+        display_seminar_details(st.session_state.selected_seminar)
+
+def display_past_seminars_table(seminars):
+    """Helper function to display past seminars table using AgGrid."""
+    df = pd.DataFrame(seminars, columns=['id', 'date', 'start_time', 'end_time', 'speaker_name', 'speaker_email', 'speaker_bio', 'topic', 'abstract', 'room'])
+    df['date'] = pd.to_datetime(df['date']).dt.strftime('%Y-%m-%d')
+    df['start_time'] = pd.to_datetime(df['start_time'], format='%H:%M:%S').dt.strftime('%H:%M')
+    df['end_time'] = pd.to_datetime(df['end_time'], format='%H:%M:%S').dt.strftime('%H:%M')
+    df['datetime'] = pd.to_datetime(df['date'].astype(str) + ' ' + df['start_time'].astype(str))
+    df = df.sort_values('datetime', ascending=False)  # Past seminars in reverse chronological order
+
+    gb = GridOptionsBuilder.from_dataframe(df[['id', 'date', 'start_time', 'end_time', 'topic', 'speaker_name', 'room']])
+    # Different configuration for past seminars
+    gb.configure_column("id", width=40)
+    gb.configure_column("date", width=100)
+    gb.configure_column("start_time", width=80)
+    gb.configure_column("end_time", width=80)
+    gb.configure_column("topic", width=300, wrapText=True, autoHeight=True)
+    gb.configure_column("speaker_name", width=150)
+    gb.configure_column("room", width=80)
+    gb.configure_selection('single', use_checkbox=False, groupSelectsChildren=True, groupSelectsFiltered=True)
+    grid_options = gb.build()
+
+    grid_response = AgGrid(
+        df[['id', 'date', 'start_time', 'end_time', 'topic', 'speaker_name', 'room']],
+        gridOptions=grid_options,
+        height=300,
+        data_return_mode='AS_INPUT',
+        update_mode='SELECTION_CHANGED',
+        fit_columns_on_grid_load=False,  # Changed for past seminars
+        allow_unsafe_jscode=True
+    )
+
+    selected_rows = pd.DataFrame(grid_response['selected_rows'])
+    if not selected_rows.empty and 'id' in selected_rows.columns:
+        selected_seminar_id = selected_rows.iloc[0]['id']
+        selected_seminar = df[df['id'] == selected_seminar_id].iloc[0].to_dict()
+        st.session_state.selected_seminar = selected_seminar
+        logging.info(f"Past seminar selected: {selected_seminar['topic']}")
     else:
         st.session_state.selected_seminar = None
 
@@ -256,7 +266,7 @@ def show():
         if not seminars:
             st.warning("No upcoming seminars found.")
         else:
-            display_seminars_table(seminars, "Upcoming Seminar")
+            display_upcoming_seminars_table(seminars)
 
     # Past Seminars Tab
     with tab2:
@@ -264,7 +274,7 @@ def show():
         if not past_seminars:
             st.warning("No past seminars found.")
         else:
-            display_seminars_table(past_seminars, "Past Seminar")
+            display_past_seminars_table(past_seminars)
     
     # Request Seminar Tab
     with tab3:
