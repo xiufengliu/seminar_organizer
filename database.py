@@ -152,7 +152,7 @@ class SeminarDB:
             cursor.execute('''
                 SELECT * FROM seminars 
                 WHERE date < ? 
-                ORDER BY date ASC, start_time ASC
+                ORDER BY date DESC, start_time DESC
             ''', (now.strftime("%Y-%m-%d"),))
             
             # Fetch all results
@@ -207,7 +207,7 @@ class SeminarDB:
         
         return seminar_requests
 
-    def update_seminar_request(self, request_id, date, start_time, end_time, speaker_name, speaker_email, speaker_bio, topic, abstract, room, status):
+    def update_seminar_request(self, request_id, date, start_time, end_time, speaker_name, speaker_email, speaker_bio, topic, abstract, room, status, seminar_type):
         try:
             # Use context manager to handle connection and ensure it's closed after the operation
             with self.connect() as conn:
@@ -238,9 +238,9 @@ class SeminarDB:
                     # Update the seminar request with the provided details
                     cursor.execute('''
                         UPDATE seminar_requests
-                        SET date = ?, start_time = ?, end_time = ?, speaker_name = ?, speaker_email = ?, speaker_bio = ?, topic = ?, abstract = ?, room = ?, status = ?
+                        SET date = ?, start_time = ?, end_time = ?, speaker_name = ?, speaker_email = ?, speaker_bio = ?, topic = ?, abstract = ?, room = ?, status = ?, seminar_type=? 
                         WHERE id = ?
-                    ''', (date, start_time, end_time, speaker_name, speaker_email, speaker_bio, topic, abstract, room, status, request_id))
+                    ''', (date, start_time, end_time, speaker_name, speaker_email, speaker_bio, topic, abstract, room, status, seminar_type, request_id))
                     
                     # Commit the changes to the database
                     conn.commit()
@@ -270,7 +270,7 @@ class SeminarDB:
                     topic = request[7]
                     
                     # Create a new seminar using the relevant request data (excluding id and status)
-                    self.create_seminar(*request[1:10])
+                    self.create_seminar(*request[1:11])
                     
                     # After creating the seminar, delete the request from the seminar_requests table
                     cursor.execute('DELETE FROM seminar_requests WHERE id = ?', (request_id,))
