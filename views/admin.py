@@ -26,7 +26,7 @@ def show():
         if st.button("Login"):
             if db.verify_admin(username, password):
                 st.session_state.admin_logged_in = True
-                st.experimental_rerun()
+                st.rerun()
             else:
                 st.error("Invalid username or password")
     else:
@@ -159,17 +159,17 @@ def show():
                                 for r in similar_requests:
                                     db.approve_seminar_request(r[0])
                                 st.success(f"Approved {len(similar_requests)} similar seminar requests and added to schedule.")
-                                st.experimental_rerun()
+                                st.rerun()
                         with col2:
                             if st.button("Reject", key=f"reject_{request[0]}"):
                                 for r in similar_requests:
                                     db.update_seminar_request(r[0], r[1], r[2], r[3], r[4], r[5], r[6], r[7], r[8], r[9], "rejected", r[13])
                                 st.success(f"Rejected {len(similar_requests)} similar seminar requests.")
-                                st.experimental_rerun()
+                                st.rerun()
                         with col3:
                             if st.button("Edit", key=f"edit_{request[0]}"):
                                 st.session_state.editing_request = request[0]
-                                st.experimental_rerun()
+                                st.rerun()
 
             # ... (rest of the code for editing requests remains the same)
 
@@ -208,10 +208,10 @@ def show():
                         )
                         st.success("Seminar request updated successfully!")
                         del st.session_state.editing_request
-                        st.experimental_rerun()
+                        st.rerun()
 
         if st.button("Logout"):
             st.session_state.admin_logged_in = False
-            st.experimental_rerun()
+            st.rerun()
 
     db.close()
